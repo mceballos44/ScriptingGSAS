@@ -66,6 +66,19 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 - [ ] `copy_displaceX`: copy the list (`list(displace_x)`) instead of sharing one object
 - [ ] Size limits in `first_seq_refine` do nothing while Size isn't refined
 
+## Process / project setup
+
+- [ ] Fix GitHub access (Claude GitHub App on `mceballos44/ScriptingGSAS`) and push the local commits
+- [x] `CLAUDE.md` with working rules for Claude sessions
+- [x] `README.md` documenting what each part does
+- [ ] Move parameters out of code into config/metadata files: sample list (`main.py`), paths and
+      file names (`config.py`), refinement settings and thresholds, per-sample metadata
+      (group, mount, collection date, notes)
+- [ ] Enforce read-only `data/` and `controls/` with deny rules in `.claude/settings.json`
+- [ ] On the local machine: run `/fewer-permission-prompts` after a few sessions
+- [ ] HTML report per run: Rwp and a/c vs T with flags, CTE table, worst fits
+- [ ] Once the pipeline is stable: package "run a new sample" as a skill (`skill-creator`)
+
 ## 4. Cleanup
 
 - [ ] Remove unused `columns` list in `results.py`
