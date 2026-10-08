@@ -12,11 +12,17 @@ def initial_refine(gpx):
     """
     Refine a single pwdr set to a decent point before copying all
     data to other pwdr
+
+    Zero is left at 0 on purpose: over 6.5-18.5 deg 2theta, Zero and
+    DisplaceX shift peaks almost identically, so only DisplaceX is used
+    as the peak offset (the larva can move between temperatures, so it
+    is also refined per temperature later).
     """
 
     hist = gpx.histogram(0)
 
     reflist = [
+        # Step 1: background and peak offset
         {
             'set': {
                 'Sample Parameters': ['DisplaceX'],
@@ -26,66 +32,20 @@ def initial_refine(gpx):
                 }
             }
         },
-
+        # Step 2: add cell and microstrain, background and DisplaceX stay on.
+        # C-axis has lower CTE generally, so we expect axial strain to be
+        # unique. 'refine': True refines both axial and equatorial terms
         {
             'set': {
                 'Cell': True,
                 'Mustrain': {
                     'type': 'uniaxial',
-                    'refine': 'axial',
-                    'direction': [0,0,1]
-                    # C-axis has lower CTE generally, so we expect axial strain to be
-                    # unique
-                },
-                'Mustrain':{
-                    'type': 'uniaxial',
-                    'refine': 'equatorial'
-                }  
-            }#,
-            # 'once':{
-            #     'Size':{
-            #         'refine': True
-            #     }
-            # }
-        },
-        {
-            'set': {
-                'Cell': False,
-                'Mustrain': {
-                    'refine': False
-                },
-                'Background': {
-                    'no. coeffs': 5,
-                    'refine': False
-                }
-            },
-            'clear': {
-                'Sample Parameters': ['DisplaceX'],
-            }
-        },
-        
-        {
-            'once': {
-                'Instrument Parameters': ['Zero']
-            }
-        },
-        
-        {
-            'set': {
-                'Sample Parameters': ['DisplaceX'],
-                'Background': {
-                    'no. coeffs': 5,
-                    'refine': True
-                }
-            },
-            'set': {
-                'Cell': True,
-                'Mustrain': {
+                    'direction': [0, 0, 1],
                     'refine': True
                 }
             }
         },
-        # Clear all parameters for sequential start
+        # Step 3: clear all parameters for sequential start (no refinement)
         {
             'set': {
                 'Cell': False,
@@ -98,10 +58,10 @@ def initial_refine(gpx):
             },
             'clear': {
                 'Sample Parameters': ['DisplaceX']
-            }
+            },
+            'skip': True
         }
     ]
-
 
     gpx.do_refinements(
         reflist,
