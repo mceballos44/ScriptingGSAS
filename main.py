@@ -24,6 +24,7 @@ import pandas as pd
 from scripts.config import setup,BASE_DIR,DATA_DIR,PROJECT_DIR,OUTPUT_DIR,CONTROLS_DIR
 from scripts.config import BACKGROUND_FILE,CONTROLS_FILE,MASK_FILE,INSTRUMENT_FILE
 from scripts.results import extract_data, combine_data, save_data
+from scripts.results import flag_fit_quality, quality_summary
 import scripts.image_processing as ip
 import scripts.refinement as rf
 # Will always use this cif file for the phase
@@ -100,7 +101,11 @@ for sample_name in samples:
 
 
 full_df = combine_data(all_results)
+# Mark temperatures where Rwp went up or other fit checks failed
+full_df = flag_fit_quality(full_df)
 
 save_data(full_df)
 
 print(full_df)
+print()
+print(quality_summary(full_df).to_string(index=False))
