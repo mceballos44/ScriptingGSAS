@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Conda / environments
+.conda/
+.PCScripting/
+.env/
+venv/
+
+# GSAS-II installation / binaries
+G2/
+GSASII-bin/
+
+# Generated GSAS projects
+projects/
+*.gpx
+
+# Generated analysis results
+output/
+
+# Temporary files
+scratch/
+
+# Jupyter temporary files
+.ipynb_checkpoints/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Experimental raw data
+data/*.cbf
+data/*.tif
+data/*.tiff
+# Keep ice cif on git
+data/*
+!data/ice.cif

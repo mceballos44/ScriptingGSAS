@@ -1,0 +1,31 @@
+type:PWDR
+color:Paired
+wavelength:0.56083
+calibrant:LaB6  SRM660b
+distance:150.537
+center:[41.197, 53.116]
+Oblique:[0.5, False]
+tilt:0.381
+rotation:168.53
+azmthOff:0.0
+fullIntegrate:False
+LRazimuth:[300.0, 625.0]
+setdist:150.0
+IOtth:[6.5, 18.5]
+outChannels:2500
+outAzimuths:1
+invert_x:False
+invert_y:True
+DetDepth:0.0
+calibskip:1
+pixLimit:5
+cutoff:5.0
+calibdmin:1.0
+Flat Bkg:0.0
+varyList:{'dist': True, 'det-X': True, 'det-Y': True, 'tilt': True, 'phi': True, 'dep': False, 'wave': False}
+binType:2-theta
+SampleShape:Cylinder
+PolaVal:[0.99, False]
+SampleAbs:[0.0, False]
+dark image:['', -1.0]
+background image:['', -1.0]
