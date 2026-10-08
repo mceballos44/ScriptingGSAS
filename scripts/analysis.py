@@ -170,6 +170,33 @@ def calculate_cte(parameter,group):
     results_df = pd.DataFrame(results)
     return results_df
 
+def plot_rwp(group):
+    """
+    Plot Rwp vs temperature per sample. Circles: Rwp went up from the
+    previous step. Black x: any failed fit check.
+    """
+    df = pd.read_csv(OUTPUT_DIR / "seq_results.csv")
+    if group is not None:
+        df = df[df['Sample'].str.startswith(group)].copy()
+
+    plt.figure()
+    for sample in df['Sample'].unique():
+        sample_data = df[df['Sample'] == sample].sort_values('T')
+        line, = plt.plot(sample_data['T'], sample_data['Rwp'],
+                         label=sample, marker='o')
+        increased = sample_data[sample_data['Rwp_increase'] == True]
+        plt.scatter(increased['T'], increased['Rwp'], s=150,
+                    facecolors='none', edgecolors=line.get_color())
+        bad = sample_data[sample_data['Fit_OK'] == False]
+        plt.scatter(bad['T'], bad['Rwp'], marker='x', s=80, color='black')
+    plt.xlabel('Temperature (K)')
+    plt.ylabel('Rwp (%)')
+    plt.title('Circled: Rwp increase, x: failed fit check')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+    return
+
 def stats_summary(parameter,group):
     
     return
@@ -181,3 +208,5 @@ c_cte = calculate_cte('C',group='AFP')
 
 print(a_cte)
 print(c_cte)
+
+plot_rwp(group='AFP')

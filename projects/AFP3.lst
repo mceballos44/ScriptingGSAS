@@ -1,0 +1,83 @@
+********************************************************************************
+   General Structure Analysis System-II Crystal Structure Refinement
+              by Robert B. Von Dreele & Brian H. Toby
+                Argonne National Laboratory(C), 2010
+ This product includes software developed by the UChicago Argonne, LLC,
+            as Operator of Argonne National Laboratory.
+                          Please cite:
+   B.H. Toby & R.B. Von Dreele, J. Appl. Cryst. 46, 544-549 (2013)
+********************************************************************************
+ Least squares controls:
+ Refinement type: analytic Hessian
+ Maximum number of cycles: 10
+ Regularize hydrogens (if any): False
+ Initial shift factor: 1.000
+ Sequential refinement controls:
+ Copy of histogram results to next: False
+ Process histograms in reverse order: False
+
+ Refinement results for histogram id 0: PWDR AFP3_241.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.346s,    0.173s/cycle, for 2 cycles
+ wR =    9.39%, chi**2 =      3.80173, GOF =   0.04
+
+ Refinement results for histogram id 1: PWDR AFP3_242.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.340s,    0.170s/cycle, for 2 cycles
+ wR =    9.19%, chi**2 =      3.63879, GOF =   0.04
+
+ Refinement results for histogram id 2: PWDR AFP3_243.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.365s,    0.183s/cycle, for 2 cycles
+ wR =    9.15%, chi**2 =      3.61893, GOF =   0.04
+
+ Refinement results for histogram id 3: PWDR AFP3_244.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.351s,    0.176s/cycle, for 2 cycles
+ wR =    9.32%, chi**2 =      3.74618, GOF =   0.04
+
+ Refinement results for histogram id 4: PWDR AFP3_245.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.349s,    0.175s/cycle, for 2 cycles
+ wR =    9.29%, chi**2 =      3.72262, GOF =   0.04
+
+ Refinement results for histogram id 5: PWDR AFP3_246.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.375s,    0.188s/cycle, for 2 cycles
+ wR =    9.17%, chi**2 =      3.62567, GOF =   0.04
+
+ Refinement results for histogram id 6: PWDR AFP3_247.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.362s,    0.181s/cycle, for 2 cycles
+ wR =    9.10%, chi**2 =      3.57845, GOF =   0.04
+
+ Refinement results for histogram id 7: PWDR AFP3_248.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.341s,    0.170s/cycle, for 2 cycles
+ wR =    9.17%, chi**2 =       3.6321, GOF =   0.04
+
+ Refinement results for histogram id 8: PWDR AFP3_249.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.362s,    0.181s/cycle, for 2 cycles
+ wR =    9.13%, chi**2 =      3.60458, GOF =   0.04
+
+ Refinement results for histogram id 9: PWDR AFP3_250.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.250s,    0.125s/cycle, for 2 cycles
+ wR =    8.81%, chi**2 =       3.3504, GOF =   0.04
+
+ Refinement results for histogram id 10: PWDR AFP3_251.cbf Azm= 102.50
+---------------------------------------------------------------------------------------------------------------------------------------
+ Number of function calls: 5 No. of observations: 2500 No. of parameters: 11 User rejected: 0 Sp. gp. extinct: 0
+ Refinement time =    0.192s,    0.096s/cycle, for 2 cycles
+ wR =    8.86%, chi**2 =       3.3871, GOF =   0.04

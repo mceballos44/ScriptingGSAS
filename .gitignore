@@ -13,7 +13,7 @@ G2/
 GSASII-bin/
 
 # Generated GSAS projects
-projects/
+#projects/
 *.gpx
 
 # Generated analysis results
