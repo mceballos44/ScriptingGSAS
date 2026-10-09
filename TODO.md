@@ -46,6 +46,22 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 - [ ] Larvae can move or dehydrate during a run, and ice in tissue can be spotty (few large crystals).
       Watch for single-temperature Rwp jumps and check those images by eye
 
+## Statistics
+
+- [ ] Record per sample: temperature range measured (min, max, step) and the freezing point
+      bracket (lowest temperature with no ice and highest temperature with ice, from
+      `remove_unfrozen`, which currently prints the dropped temperatures but doesn't save them)
+- [ ] Statistical tests within each treatment group (AFP, WT): do samples run over different
+      temperature ranges differ in freezing temperature (and CTE, a, c)?
+  - Collection: each sample starts at 260 K or 280 K and is cooled in 1 K steps, scanned at each
+    step. So this is a freezing (supercooling) temperature, known to within 1 K
+  - Ice forms in every sample (average about 250 K for both start temperatures), so no run starts
+    below its freezing point; invalid samples are already excluded from this set
+  - Small groups (about 11 each, split further by start temperature): use rank-based or
+    permutation tests (Mann-Whitney U, permutation test on the difference in medians) rather
+    than t-tests
+- [ ] Then compare AFP vs WT, keeping temperature range as a covariate if it matters
+
 ## 2. Code that will crash or misbehave
 
 - [ ] `analysis.py` reads `seq_results.xlsx`, which `save_data` never writes (point it at the csv)
@@ -71,9 +87,10 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 - [ ] Fix GitHub access (Claude GitHub App on `mceballos44/ScriptingGSAS`) and push the local commits
 - [x] `CLAUDE.md` with working rules for Claude sessions
 - [x] `README.md` documenting what each part does
-- [ ] Move parameters out of code into config/metadata files: sample list (`main.py`), paths and
-      file names (`config.py`), refinement settings and thresholds, per-sample metadata
-      (group, mount, collection date, notes)
+- [ ] Move parameters out of code into one config file: sample list (`main.py`), paths and
+      file names (`config.py`), refinement settings and thresholds. Sample metadata is the same
+      for every sample, so no per-sample metadata files; the only per-sample difference is the
+      temperature range, which can be read from the image file names (record it in the results)
 - [ ] Enforce read-only `data/` and `controls/` with deny rules in `.claude/settings.json`
 - [ ] On the local machine: run `/fewer-permission-prompts` after a few sessions
 - [ ] HTML report per run: Rwp and a/c vs T with flags, CTE table, worst fits
