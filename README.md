@@ -51,7 +51,8 @@ matrix (prefixed `[GSAS]`), and the summary tables at the end. Set `QUIET_GSAS =
    displacement are copied from the first pattern.
 3. **Sequential, pass 1:** refine the Dij strain terms (which give a and c) at each temperature,
    each one starting from the previous temperature's result.
-4. **Sequential, pass 2:** also refine displacement, background and microstrain.
+4. **Sequential, pass 2:** also refine background and microstrain. Displacement stays at the value
+   from step 1 (refining it at every temperature added noise to a and c; see `TODO.md` 1c).
 
 ## Outputs
 
@@ -77,7 +78,9 @@ matrix (prefixed `[GSAS]`), and the summary tables at the end. Set `QUIET_GSAS =
 Weighted straight-line fit of a or c vs temperature (points with larger error bars count less).
 `Red_chi2_fit` is about 1 when the points scatter as much as their error bars say; much larger
 means extra scatter or a curved trend (the CTE uncertainty already accounts for it).
-`exclude_flagged=True` leaves out temperatures that failed a fit check.
+Options are set in `CTE_SETTINGS` in `scripts/config.py`: the freezing scan is left out by default,
+`excluded_scans` lists individual scans to drop after checking their images, and
+`exclude_flagged=True` leaves out every temperature that failed a fit check.
 
 ### Fit-quality columns
 
@@ -87,9 +90,10 @@ means extra scatter or a curved trend (the CTE uncertainty already accounts for 
 | `Rp` | Unweighted profile R-factor (%) |
 | `GOF` | Goodness of fit. Assumes intensities in counts; ours are much smaller, so it sits far below 1. Compare between temperatures only |
 | `Durbin_Watson` | About 2 when the misfit is random; lower means a systematic misfit (peak shape or background). Finely sampled patterns sit well below 2, so it is flagged only when unusually low for the sample |
-| `Converged`, `Last_shift_esd`, `SVD_singular` | Whether the fit settled (final-cycle shift/esd below 0.1), and whether any parameters were undetermined |
+| `Converged`, `Last_shift_esd`, `SVD_singular` | Whether the fit settled (final-cycle shift/esd below 1), and whether any parameters were undetermined |
+| `Last_shift_param` | The parameter with the largest final-cycle shift/esd |
 | `Total_shift_esd` | How far parameters moved from their starting values, in esds (informational, not a convergence test) |
 | `Rwp_increase` | Rwp went up compared with the previous temperature |
 | `A_trend_z`, `C_trend_z` | How far a or c sits from a straight-line fit vs temperature |
-| `DisplaceX` | Sample displacement; a steady drift with temperature means the larva moved |
+| `DisplaceX` | Sample displacement (fixed after the first refinement by default) |
 | `Fit_flags`, `Fit_OK` | Every check that failed, and whether the row passed all of them |

@@ -31,6 +31,31 @@ LOG_DIR = OUTPUT_DIR / "logs"
 GSAS_LOG_KEYWORDS = ['error', 'warn', 'fail', 'singular', 'abort']
 
 # ---------------------------------
+# Refinement settings
+# ---------------------------------
+# Refine DisplaceX at every temperature in the second sequential pass.
+# False (default): keep the value from initial_refine. Per-temperature
+# DisplaceX is not determined by the data and trades off with a and c;
+# fixing it halved the scatter of a, c and the CTE uncertainty (TODO 1c)
+REFINE_DISPLACEMENT_PER_T = False
+
+# ---------------------------------
+# CTE fit (analysis.calculate_cte)
+# ---------------------------------
+CTE_SETTINGS = {
+    # Leave out the freezing scan (T_freeze): water is still freezing, so
+    # the pattern can be partly liquid / spotty (e.g. AFP5 and AFP8 at 250 K)
+    'exclude_freeze_scan': True,
+    # Leave out temperatures that failed any fit check (Fit_OK == False)
+    'exclude_flagged': False,
+    # Individual scans to leave out after looking at them: {sample: [T, ...]}
+    # Candidates from the 2026-10-09 runs (Rwp 17-25%, same with DisplaceX
+    # fixed or refined, so the pattern itself is off): AFP6 243, AFP17 246,
+    # WT23 246, WT3 241/244/245. Add them here once checked
+    'excluded_scans': {},
+}
+
+# ---------------------------------
 # Fit quality checks (results.flag_fit_quality)
 # ---------------------------------
 FIT_CHECKS = {
@@ -39,8 +64,11 @@ FIT_CHECKS = {
     'rwp_tol': 0.05,
     # Robust deviations from the sample median that count as an outlier
     'n_mad': 3.0,
-    # Largest acceptable final-cycle shift/esd
-    'max_shift_esd': 0.1,
+    # Largest acceptable final-cycle shift/esd. GSAS-II stops when chi2
+    # changes by <0.1% per cycle; at that point the last shifts are still
+    # ~0.3-1 esd (median 0.7 in the 2026-10-09 runs), so 0.1 flags every
+    # row. 1.0 flags only fits still moving by more than their esd
+    'max_shift_esd': 1.0,
     # Robust z-score for a or c to count as off the straight-line trend
     'lattice_sigma': 3.0,
 }

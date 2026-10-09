@@ -6,12 +6,14 @@ import pandas as pd
 import numpy as np
 # Import directories
 from scripts.config import setup,BASE_DIR,DATA_DIR,PROJECT_DIR,OUTPUT_DIR,CONTROLS_DIR
+from scripts.config import CTE_SETTINGS
 #from scripts.config import BACKGROUND_FILE,CONTROLS_FILE,MASK_FILE,INSTRUMENT_FILE
 import scripts.image_processing as ip
 # Will always use this cif file for the phase
 ice_cif = DATA_DIR / "ice.cif"
 
 RESULTS_FILE = OUTPUT_DIR / "seq_results.csv"
+SAMPLE_INFO_FILE = OUTPUT_DIR / "sample_info.csv"
 # This workbook will contain the functions for rearranging long table data for auto plotting
 
 # First thing I would like to do is get a summary graph of the a and c lattice parameters for all the samples.
@@ -88,7 +90,8 @@ def plot_parameter(parameter,sigma_parameter,group):
     plt.show()
     return
 
-def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False):
+def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False,
+                  exclude_freeze_scan=False, excluded_scans=None):
     """
     Calculate linear coefficient of thermal expansion (CTE)
     for each sample.
@@ -119,6 +122,14 @@ def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False)
     exclude_flagged : bool
         If True, leave out temperatures with Fit_OK == False
         (see results.flag_fit_quality).
+
+    exclude_freeze_scan : bool
+        If True, leave out each sample's freezing scan (T_freeze in
+        output/sample_info.csv), which can be partly liquid.
+
+    excluded_scans : dict or None
+        Scans to leave out, {sample: [temperature, ...]}, e.g. ones whose
+        images were checked and found bad.
 
     Returns
     -------
@@ -159,6 +170,11 @@ def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False)
     if sigma_parameter is None:
         sigma_parameter = f"sigma{parameter}"
 
+    freeze_T = {}
+    if exclude_freeze_scan:
+        info = pd.read_csv(SAMPLE_INFO_FILE)
+        freeze_T = dict(zip(info['Sample'], info['T_freeze']))
+
     results = []
     
     # Go through samples one at a time
@@ -169,6 +185,10 @@ def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False)
         sample_data = sample_data.dropna(subset=['T', parameter])
         if exclude_flagged and 'Fit_OK' in sample_data:
             sample_data = sample_data[sample_data['Fit_OK'] == True]
+        if exclude_freeze_scan and sample in freeze_T:
+            sample_data = sample_data[sample_data['T'] != freeze_T[sample]]
+        if excluded_scans and sample in excluded_scans:
+            sample_data = sample_data[~sample_data['T'].isin(excluded_scans[sample])]
         n_used = len(sample_data)
 
         T = sample_data['T'].to_numpy(dtype=float)
@@ -273,8 +293,8 @@ if __name__ == "__main__":
     # Sample displacement vs T: a steady drift means the larva moved (TODO 1c)
     plot_parameter('DisplaceX','sigma_DisplaceX',group='AFP')
 
-    a_cte = calculate_cte('A',group='AFP')
-    c_cte = calculate_cte('C',group='AFP')
+    a_cte = calculate_cte('A',group='AFP',**CTE_SETTINGS)
+    c_cte = calculate_cte('C',group='AFP',**CTE_SETTINGS)
 
     print(a_cte)
     print(c_cte)

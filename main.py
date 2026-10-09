@@ -28,18 +28,20 @@ from scripts.config import BACKGROUND_FILE,CONTROLS_FILE,MASK_FILE,INSTRUMENT_FI
 from scripts.results import extract_data, combine_data, save_data
 from scripts.results import flag_fit_quality, quality_summary, temperature_info
 from scripts.config import QUIET_GSAS, LOG_DIR, GSAS_LOG_KEYWORDS, FIT_CHECKS
+from scripts.config import REFINE_DISPLACEMENT_PER_T
 from scripts.output_control import gsas_output_to
 import scripts.image_processing as ip
 import scripts.refinement as rf
 # Will always use this cif file for the phase
 ice_cif = DATA_DIR / "ice.cif"
 
-def full_analysis(sample_name, refine_displacement=True):
+def full_analysis(sample_name, refine_displacement=REFINE_DISPLACEMENT_PER_T):
     """
     Run the complete GSASII analysis for a single sample
 
-    refine_displacement: passed to additional_seq_refine. Run once with
-    False to compare CTE with DisplaceX fixed vs refined (TODO 1c)
+    refine_displacement: passed to additional_seq_refine; default from
+    config.REFINE_DISPLACEMENT_PER_T (False: DisplaceX fixed at the value
+    from initial_refine, see TODO 1c)
     """
     
     gpx = setup(sample_name=sample_name)
@@ -89,7 +91,7 @@ samples = [
     "AFP7",
     "AFP8",
     "AFP15",
-    "AFP16",
+    # "AFP16",  excluded: only 4 frozen scans, one of them a bad fit
     "AFP17",
     "AFP18",
     "AFP21",
@@ -99,7 +101,7 @@ samples = [
     "WT5",
     "WT6",
     "WT7",
-    "WT20",
+    # "WT20",   excluded: only 2 frozen scans (run ends at 250 K)
     "WT21",
     "WT22",
     "WT23",

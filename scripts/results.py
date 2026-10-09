@@ -64,19 +64,23 @@ def _profile_stats(hist_data, rwp_gsas):
 
 def _last_shift_esd(seq_results):
     """
-    Largest |shift/esd| in the final least-squares cycle. GSAS-II's own
-    'Max shft/sig' is the total change from the starting values, which is
-    large whenever a parameter moved a lot, even in a converged fit.
+    Largest |shift/esd| in the final least-squares cycle, and the
+    parameter it belongs to. GSAS-II's own 'Max shft/sig' is the total
+    change from the starting values, which is large whenever a parameter
+    moved a lot, even in a converged fit.
     """
     shifts = seq_results.get('Rvals', {}).get('lastShifts')
     if not shifts:
-        return np.nan
+        return np.nan, ''
     sig = dict(zip(seq_results.get('varyList', []), seq_results.get('sig', [])))
-    ratios = [
-        abs(shift / sig[name]) for name, shift in shifts.items()
+    ratios = {
+        name: abs(shift / sig[name]) for name, shift in shifts.items()
         if sig.get(name) not in (None, 0) and np.isfinite(sig[name])
-    ]
-    return max(ratios) if ratios else np.nan
+    }
+    if not ratios:
+        return np.nan, ''
+    worst = max(ratios, key=ratios.get)
+    return ratios[worst], worst
 
 def _fit_metrics(seq_results, hist_data):
     """
@@ -93,6 +97,7 @@ def _fit_metrics(seq_results, hist_data):
     rvals = seq_results.get('Rvals', {})
     rwp = rvals.get('Rwp', np.nan)
     gof = rvals.get('GOF', np.nan)
+    last_shift, last_shift_param = _last_shift_esd(seq_results)
     metrics = {
         'Rwp': rwp,                                     # weighted profile R (%)
         'GOF': gof,                                     # relative use only, see above
@@ -101,7 +106,8 @@ def _fit_metrics(seq_results, hist_data):
         'Nvars': rvals.get('Nvars', np.nan),
         'Converged': rvals.get('converged', None),
         'DelChi2': rvals.get('DelChi2', np.nan),        # last relative change in chi2
-        'Last_shift_esd': _last_shift_esd(seq_results), # final-cycle shift/esd
+        'Last_shift_esd': last_shift,                    # final-cycle shift/esd
+        'Last_shift_param': last_shift_param,           # parameter with that shift
         'Total_shift_esd': rvals.get('Max shft/sig', np.nan),  # change from start
         'SVD_singular': rvals.get('SVD0', 0),           # >0 means correlated/undetermined params
         'Aborted': rvals.get('Aborted', False),

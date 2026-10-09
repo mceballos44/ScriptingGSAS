@@ -26,13 +26,19 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
       0.8), so GSAS-II's 1/y weights don't match the real noise. Rwp and esds (scaled by GOF) are
       fine; GOF/Rexp are not interpretable in absolute terms. Find where the scaling comes from
       (image controls / detector gain) if absolute GOF matters
-- [ ] Bad fits in the first run (Rwp jumps from ~8% to 17-25%), check these patterns and images:
+- [ ] Bad fits in the first run (Rwp jumps from ~8% to 17-25%), check these patterns and images.
+      They are identical with DisplaceX fixed, so the patterns themselves are off, not the fit.
+      AFP5 250 checked: noisy image, incomplete rings (freezing artifact). Once checked, list bad
+      scans in `CTE_SETTINGS['excluded_scans']` (`config.py`):
       AFP16 247, AFP17 246, AFP5 250, AFP6 243, AFP8 250, WT23 246, WT3 241/244/245.
       AFP5 250 and AFP8 250 are the freezing scan (probably partly liquid). The others are
       mid-run and recover at the next temperature; in them Mustrain and DisplaceX jump
       (DisplaceX up to 114 vs typical ±5), so the fit wandered or the pattern changed (spotty ice?)
-- [ ] Decide whether the freezing scan (T_freeze) belongs in the CTE fit
-- [ ] AFP16 (4 frozen scans, one bad) and WT20 (2) have too few points for a CTE
+- [x] Freezing scan (T_freeze) left out of the CTE fit (`CTE_SETTINGS['exclude_freeze_scan']`)
+- [x] AFP16 (4 frozen scans, one bad) and WT20 (2) excluded from the sample list in `main.py`
+- [ ] Last-cycle shift/esd is still ~0.3-1 esd (median 0.7) when GSAS-II stops (chi2 change < 0.1%).
+      Flag threshold set to 1.0 for now. `Last_shift_param` records which parameter moved most;
+      if it's always the same one, try a tighter convergence (`min dM/M` 1e-4) or more cycles
 
 ## 1. Refinement problems that change results
 
@@ -41,18 +47,15 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 - [x] **1b** Stop refining Zero on the sample. In 6.5-18.5° 2θ, Zero and DisplaceX shift peaks almost
       identically (cos2θ only goes 0.994 to 0.948), so refining both makes the split arbitrary.
       Decision: Zero fixed at 0, DisplaceX is the only peak-offset parameter.
-- [ ] **1c** DisplaceX refined per temperature together with Dij in `additional_seq_refine`.
-      Keep for now: a larva on a capillary tip can move between temperatures, so a per-temperature
-      offset is physically reasonable. Check that it doesn't fake expansion:
-  - [~] Plot refined DisplaceX vs T per sample: `DisplaceX`/`sigma_DisplaceX` now in the results,
-        plotted by `analysis.py`. To do: look at the plots on real data
-  - [~] Compare CTE with DisplaceX fixed vs refined; if they differ, they are correlated.
-        `full_analysis(sample, refine_displacement=False)` keeps it fixed. To do: run both and compare
-  - First run (2026-10-09): no systematic drift (slopes -0.4 to +0.2 µm/K), and DisplaceX
-    scatters less than its own esd (~1.5 vs ~3 µm), so it isn't measuring real motion. Its
-    scatter is strongly anti-correlated with the scatter of a and c around their trends
-    (r = -0.6 to -0.97 in 18 of 20 samples): refining it per temperature adds noise to a and c.
-    Expect the fixed-DisplaceX run to give smoother a(T), c(T) and tighter CTEs
+- [x] **1c** DisplaceX refined per temperature together with Dij in `additional_seq_refine`.
+      Tested 2026-10-09 (runs 15:53 refined vs 16:03 fixed): per-temperature DisplaceX scatters
+      less than its esd, shows no drift, and is anti-correlated with the a/c scatter. Fixing it
+      halved the scatter of a and c around their trends and the CTE uncertainty (median ratio
+      0.43 for a, 0.53 for c), and lowered CTEs by ~1 sigma, more for AFP than WT (the refined
+      run made AFP look ~7e-6/K higher than WT in a; fixed: ~2e-6/K).
+      Decision: `REFINE_DISPLACEMENT_PER_T = False` (`config.py`); DisplaceX is refined only in
+      `initial_refine`. Note DisplaceX also shifts absolute a/c (median DisplaceX 42 µm fixed vs
+      5 µm refined moved a by 0.006 Å), consistent with the distance-scale caveat below
 - [x] **1d** `calculate_cte`: weighted fit (`np.polyfit(..., w=1/sigma, cov=True)`), optional
       `exclude_flagged=True` to leave out `Fit_OK == False` points, skips unrefined temperatures.
       Also reports `Red_chi2_fit` (scatter around the line vs error bars)

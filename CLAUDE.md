@@ -55,7 +55,8 @@ both git-ignored; `config.py` creates the folders on import.
 5. `first_seq_refine` – link phase to all histograms, copy hist 0's background/instrument/limits,
    HAP values and DisplaceX to all, turn on Dij (HStrain), run sequential with `seqCopy`
    (each histogram starts from the previous result).
-6. `additional_seq_refine` – sequential again with DisplaceX, background and Mustrain added.
+6. `additional_seq_refine` – sequential again with background and Mustrain added (DisplaceX only
+   if `REFINE_DISPLACEMENT_PER_T`).
 7. `results.extract_data` → `flag_fit_quality` → `save_data`. `temperature_info` (called between
    steps 2 and 3) records the temperature run and freezing temperature per sample.
 
@@ -64,7 +65,8 @@ raise, so check the "Failed samples" list at the end of a run.
 With `config.QUIET_GSAS` on, everything printed during `full_analysis` (GSAS-II and our own
 prints) goes to `output/logs/<sample>.log`; only lines matching `GSAS_LOG_KEYWORDS` reach the
 terminal. Put user-facing progress messages in `main.py`'s loop, outside the redirect.
-Fit-check thresholds live in `config.FIT_CHECKS` and are passed to `flag_fit_quality`.
+Fit-check thresholds live in `config.FIT_CHECKS`; CTE options (freeze scan, excluded scans) in
+`config.CTE_SETTINGS`.
 
 Lattice parameters in the sequential fits come from Dij on top of the fixed cell (Cell flag is off);
 `seq.get_cell_and_esd` combines them. Variable names are `0:<hist>:D11`, `0:<hist>:Mustrain;a`, etc.
@@ -100,4 +102,7 @@ Lattice parameters in the sequential fits come from Dij on top of the fixed cell
 - The glass capillary is most of the background. Subtracting the glass image before integration
   made GSAS-II refinements fail, so it's left to the background function for now.
 - Zero is fixed at 0. Over 6.5–18.5° 2θ it is nearly indistinguishable from DisplaceX, so DisplaceX
-  is the only peak-offset parameter (refined per temperature). Don't refine both.
+  is the only peak-offset parameter. Don't refine both.
+- DisplaceX is refined only in `initial_refine` and then held fixed (`REFINE_DISPLACEMENT_PER_T =
+  False`): per-temperature DisplaceX trades off with a and c and doubled their scatter.
+- AFP16 and WT20 are excluded (too few frozen scans). The freezing scan is left out of CTE fits.
