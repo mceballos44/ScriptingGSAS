@@ -123,6 +123,12 @@ def extract_data(gpx,sample_name):
     """
     rows = []
     seq = gpx.seqref()
+    # U_iso of O (from initial_refine; the same for every temperature)
+    uiso_O = np.nan
+    for atom in gpx.phase('ice').atoms():
+        if atom.label.upper().startswith('O'):
+            uiso_O = atom.uiso
+            break
 
     # print(f'\n\nParamlist: {seq.get_ParmList(0)}')
     # print(f'\n\nCell and ESD format: {seq.get_cell_and_esd('ice',0)}')
@@ -169,6 +175,7 @@ def extract_data(gpx,sample_name):
             'sigma_Mustrain_i': sigma_Mustrain_i,
             'DisplaceX': DisplaceX,
             'sigma_DisplaceX': sigma_DisplaceX,
+            'Uiso_O': uiso_O,
         }
         row.update(_fit_metrics(seq_results, ref_data[1]))
         rows.append(row)

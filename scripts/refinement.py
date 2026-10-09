@@ -4,6 +4,7 @@ from pathlib import Path
 # Import directories
 from scripts.config import setup,BASE_DIR,DATA_DIR,PROJECT_DIR,OUTPUT_DIR,CONTROLS_DIR
 from scripts.config import BACKGROUND_FILE,CONTROLS_FILE,MASK_FILE,INSTRUMENT_FILE
+from scripts.config import UISO_SETTINGS
 import scripts.image_processing as ip
 # Will always use this cif file for the phase
 ice_cif = DATA_DIR / "ice.cif"
@@ -15,11 +16,18 @@ def initial_refine(gpx):
 
     Zero is left at 0 on purpose: over 6.5-18.5 deg 2theta, Zero and
     DisplaceX shift peaks almost identically, so only DisplaceX is used
-    as the peak offset (the larva can move between temperatures, so it
-    is also refined per temperature later).
+    as the peak offset. It is held fixed after this step unless
+    config.REFINE_DISPLACEMENT_PER_T is on.
+
+    With UISO_SETTINGS['mode'] == 'refine', O's U_iso is refined in
+    step 2 and held for the sequential refinements.
     """
 
     hist = gpx.histogram(0)
+
+    # O U_iso is refined with the cell in step 2 and held afterwards
+    refine_uiso = UISO_SETTINGS['mode'] == 'refine'
+    oxygen = [a.label for a in gpx.phase('ice').atoms() if a.label.upper().startswith('O')]
 
     reflist = [
         # Step 1: background and peak offset
@@ -62,6 +70,10 @@ def initial_refine(gpx):
             'skip': True
         }
     ]
+
+    if refine_uiso:
+        reflist[1]['set']['Atoms'] = {label: 'U' for label in oxygen}
+        reflist[2]['clear']['Atoms'] = oxygen
 
     gpx.do_refinements(
         reflist,

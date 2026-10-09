@@ -32,6 +32,7 @@ git clone (`pip install ~/G2[gui,useful]`; binaries via `install_gsas_binaries.p
 python main.py            # full pipeline for every sample in main.py's `samples` list
 python -m scripts.analysis   # plots + CTE from output/seq_results.csv
 python -m scripts.stats      # per-sample values + group tests (stats_*.csv)
+python -m scripts.spottiness # ring spottiness from raw images -> spottiness*.csv
 python -m scripts.report     # stats + output/report.html (d3 from cdnjs)
 ```
 
@@ -111,5 +112,8 @@ Lattice parameters in the sequential fits come from Dij on top of the fixed cell
   and so are individual bad scans in `CTE_SETTINGS['excluded_scans']` (the sample stays in).
 - Statistics use one value per larva, never per-temperature points. Start temperature (260/280 K)
   is confounded with collection batch (samples 2-8 vs 15-24).
-- Atomic positions and U_iso come from `ice.cif` and are not refined (positions: not determinable
-  from this data; U_iso = 0 in the CIF is a TODO).
+- Atomic positions come from `ice.cif` and are not refined (not determinable from this data).
+  The CIF has U_iso = 0; `UISO_SETTINGS` sets starting values and refines O's U_iso on the first
+  scan only.
+- Crystallite size is not refinable here (1/cos θ broadening is flat over this 2θ range, and
+  micron grains don't broaden peaks); grain size is approached through ring spottiness instead.

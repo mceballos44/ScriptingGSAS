@@ -70,7 +70,8 @@ def build_report(results_file, sample_info_file, per_sample, tests, out_file, ru
             'Sample', 'Group', 'T_start', 'T_freeze', 'N_points',
             'CTE_A', 'sigma_CTE_A', 'CTE_C', 'sigma_CTE_C',
             'A_Tref', 'sigma_A_Tref', 'C_Tref', 'sigma_C_Tref',
-            'C_over_A_Tref', 'sigma_C_over_A_Tref', 'Tref_extrapolated']),
+            'C_over_A_Tref', 'sigma_C_over_A_Tref', 'Tref_extrapolated']
+            + [c for c in ['Spottiness'] if c in per_sample]),
         'tests': _records(tests, [
             'Quantity', 'Comparison', 'N_A', 'N_B', 'Mean_A', 'Mean_B',
             'Diff_A_minus_B', 'CI95_low', 'CI95_high', 'p_permutation',
@@ -256,8 +257,9 @@ function verdict(t) {
 function diffText(t) {
   const isT = t.Quantity.startsWith('T_freeze');
   const isCTE = t.Quantity.startsWith('CTE');
-  const d = isT ? 1 : isCTE ? 1 : (t.Quantity.startsWith('c/a') ? 5 : 4);
-  const unit = isT ? ' K' : isCTE ? '' : (t.Quantity.startsWith('c/a') ? '' : ' Å');
+  const isSpot = t.Quantity.startsWith('Ring');
+  const d = isT || isCTE ? 1 : isSpot ? 2 : (t.Quantity.startsWith('c/a') ? 5 : 4);
+  const unit = isT ? ' K' : (isCTE || isSpot || t.Quantity.startsWith('c/a')) ? '' : ' Å';
   return `${t.Diff_A_minus_B >= 0 ? '+' : ''}${fmt(t.Diff_A_minus_B, d)}${unit} [${fmt(t.CI95_low, d)}, ${fmt(t.CI95_high, d)}]`;
 }
 const order = t => (verdict(t)[0] === 'sig' ? 0 : verdict(t)[0] === 'sugg' ? 1 : 2);
@@ -477,7 +479,7 @@ function drawTables() {
     ['CTE a', s => `${fmt(s.CTE_A, 1)} ± ${fmt(s.sigma_CTE_A, 1)}`], ['CTE c', s => `${fmt(s.CTE_C, 1)} ± ${fmt(s.sigma_CTE_C, 1)}`],
     [`a at ${TREF} K (Å)`, s => fmt(s.A_Tref, 4)], [`c at ${TREF} K (Å)`, s => fmt(s.C_Tref, 4)],
     [`c/a at ${TREF} K`, s => fmt(s.C_over_A_Tref, 5) + (s.Tref_extrapolated ? ' *' : '')],
-  ], samples);
+  ].concat(samples.some(s => s.Spottiness != null) ? [['Spottiness', s => fmt(s.Spottiness, 2)]] : []), samples);
 }
 
 // ---------- methods ----------

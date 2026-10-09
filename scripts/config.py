@@ -39,6 +39,22 @@ GSAS_LOG_KEYWORDS = ['error', 'warn', 'fail', 'singular', 'abort']
 # fixing it halved the scatter of a, c and the CTE uncertainty (TODO 1c)
 REFINE_DISPLACEMENT_PER_T = False
 
+# Atomic displacement parameters (U_iso, A^2). ice.cif (COD) has U_iso = 0
+# for every atom, i.e. no thermal motion, so calculated intensities fall
+# off too slowly with angle.
+#   'cif':    leave the CIF values (0) - the old behavior, for comparison
+#   'fixed':  set O and H to the values below, never refined
+#   'refine': set the values below as a start, refine O's U_iso on the
+#             first (coldest) scan in initial_refine, then hold it for all
+#             temperatures. H stays fixed (it barely scatters X-rays)
+# The values are starting guesses of the right size for ice near 250 K,
+# not literature numbers
+UISO_SETTINGS = {
+    'mode': 'refine',
+    'O': 0.02,
+    'H': 0.04,
+}
+
 # ---------------------------------
 # CTE fit (analysis.calculate_cte)
 # ---------------------------------
@@ -57,6 +73,24 @@ CTE_SETTINGS = {
         'WT23': [246],
         'WT3': [241, 244, 245],
     },
+}
+
+# ---------------------------------
+# Ring spottiness (scripts/spottiness.py)
+# ---------------------------------
+SPOTTINESS_SETTINGS = {
+    # Ice Ih reflections to measure: the three strong low-angle rings
+    'reflections': [(1, 0, 0), (0, 0, 2), (1, 0, 1)],
+    # Half-width (deg 2theta) of the band counted as the ring; peak FWHM is
+    # ~0.18 deg
+    'ring_half_width': 0.08,
+    # Background band either side of the ring (deg 2theta from its centre)
+    'bkg_inner': 0.20,
+    'bkg_outer': 0.32,
+    # Azimuth bin width (deg)
+    'azimuth_bin': 5.0,
+    # A bin is a spot if it is this many robust deviations above the median
+    'spot_sigma': 4.0,
 }
 
 # ---------------------------------
@@ -100,6 +134,17 @@ background_file = DATA_DIR / 'glass.cbf'
 # ---------------------------------
 # Setting up base project file
 # ---------------------------------
+def set_uiso(phase):
+    """
+    Apply UISO_SETTINGS to the phase's atoms (labels starting with O or H)
+    """
+    if UISO_SETTINGS['mode'] == 'cif':
+        return
+    for atom in phase.atoms():
+        element = atom.label[0].upper()
+        if element in ('O', 'H'):
+            atom.uiso = UISO_SETTINGS[element]
+
 def setup(sample_name):
     project_file = PROJECT_DIR / f"{sample_name}.gpx"
     if project_file.exists():
@@ -116,6 +161,8 @@ def setup(sample_name):
             phasename="ice",
             fmthint='CIF',
     )
+
+    set_uiso(ice_phase)
 
     # Add background file
     background_list = 0

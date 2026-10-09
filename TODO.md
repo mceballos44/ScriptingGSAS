@@ -70,10 +70,11 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 
 ## Structure model
 
-- [ ] `ice.cif` has U_iso = 0 for every atom (no thermal motion), so calculated intensities fall
-      off too slowly with angle. Test refining one U_iso for O (H constrained or fixed) in
-      `initial_refine`, or fixing it at a literature value, and see whether Rwp improves. Affects
-      intensities/Rwp, not a and c
+- [~] `ice.cif` has U_iso = 0 for every atom (no thermal motion), so calculated intensities fall
+      off too slowly with angle. Implemented: `UISO_SETTINGS` (`config.py`). Default `'refine'`
+      sets O 0.02 / H 0.04 Å² as a start, refines O's U_iso with the cell on the first scan,
+      then holds it; `Uiso_O` column in the results. To do: run with `'refine'` and with
+      `'cif'` (old behavior) and compare Rwp, a, c and CTE
 - [ ] Peak width / crystallite size (goal: compare FWHM or size between AFP and WT).
       Refining Size makes the fit unstable because the data can't separate it from other broadening:
   - Size broadening goes as 1/cos(theta), which changes by only ~1% over 6.5-18.5 deg 2theta, so it
@@ -83,9 +84,12 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
     for 100 nm crystallites and ~0.003 deg for 1 um, so only crystallites below ~100-200 nm
     would show up at all. Ice grains in frozen tissue are typically microns (rings are spotty)
   - Options, in order of usefulness:
-    1. Ring spottiness from the 2D images (intensity variation along each ring vs azimuth):
+    1. [~] Ring spottiness from the 2D images (intensity variation along each ring vs azimuth):
        measures the number of diffracting grains, i.e. grain size in the micron range where
-       AFP's recrystallization inhibition would act. Needs a new image-analysis step
+       AFP's recrystallization inhibition would act. Implemented: `python -m scripts.spottiness`
+       (settings in `SPOTTINESS_SETTINGS`); stats and report pick it up automatically.
+       To do: run on the real images, check the numbers look sensible (smooth vs spotty
+       images by eye), then read the AFP vs WT test
     2. Empirical peak width: FWHM of a few strong reflections per scan (from the refined
        profile or single-peak fits), compared between groups as excess over the LaB6 width.
        Larva size/position adds geometric width, so compare with care
@@ -94,6 +98,8 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
       splitting grows from 0.05 to 0.15 deg 2theta across the range, which is folded into U,V,W
       from the LaB6 fit. Fine for positions; for width analysis, refit the LaB6 instrument file
       with Lam1/Lam2 (in GSAS-II, saved as a new file outside `controls/`)
+      Plan (Mauricio): recalibrate the LaB6 standard by hand in GSAS-II, fitting the Ka2/Ka1
+      ratio. Matters mostly at the high-angle end of this range
 - [ ] Preferred orientation: test spherical harmonics (order 2-4) on the first scan; spotty
       tissue ice may carry texture that the near-full-ring integration doesn't average out
 - [x] Refining O and H positions: not worthwhile with this data (d >= 1.75 Å, ~a dozen

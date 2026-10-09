@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 from scripts.config import OUTPUT_DIR, CTE_SETTINGS, STATS_SETTINGS
 from scripts.analysis import calculate_cte, SAMPLE_INFO_FILE
+from scripts.spottiness import SPOTTINESS_SUMMARY_FILE
 
 try:
     from scipy.stats import mannwhitneyu
@@ -60,6 +61,12 @@ def per_sample_table(t_ref):
 
     info = pd.read_csv(SAMPLE_INFO_FILE)
     df = df.merge(info[['Sample', 'Group', 'T_start', 'T_freeze']], on='Sample')
+
+    # Ring spottiness, if scripts/spottiness.py has been run
+    if SPOTTINESS_SUMMARY_FILE.exists():
+        spots = pd.read_csv(SPOTTINESS_SUMMARY_FILE)
+        df = df.merge(spots[['Sample', 'Spottiness', 'Spot_fraction']],
+                      on='Sample', how='left')
     return df
 
 
@@ -173,6 +180,8 @@ def run_stats(t_ref, n_resamples, seed):
         ('C_Tref', f'c at {t_ref:g} K (A)'),
         ('C_over_A_Tref', f'c/a at {t_ref:g} K'),
     ]
+    if 'Spottiness' in df:
+        quantities.append(('Spottiness', 'Ring spottiness (CV excess)'))
     for column, name in quantities:
         res = compare_groups(
             df[column].to_numpy(float), labels, 'AFP', 'WT', start,

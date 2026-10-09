@@ -22,6 +22,7 @@ Mauricio Ceballos, Joester Group, Northwestern University.
 python main.py               # runs every sample listed in main.py
 python -m scripts.analysis   # plots Rwp, a and c vs temperature, prints CTE
 python -m scripts.stats      # group comparisons (needs main.py outputs)
+python -m scripts.spottiness # ring spottiness from the raw images (optional, before stats/report)
 python -m scripts.report     # stats + HTML report in output/report.html
 ```
 
@@ -41,6 +42,7 @@ matrix (prefixed `[GSAS]`), and the summary tables at the end. Set `QUIET_GSAS =
 | `scripts/results.py` | Pulls lattice parameters, strain and fit statistics out of the sequential results, flags questionable fits, writes Excel/CSV |
 | `scripts/analysis.py` | Plots and CTE calculation from the saved results |
 | `scripts/stats.py` | Per-sample values and statistical tests between groups |
+| `scripts/spottiness.py` | Grain statistics from the 2D images: how spotty the ice rings are |
 | `scripts/report.py` | Self-contained HTML report: findings, figures and tables (needs internet for fonts and the d3 chart library) |
 | `scripts/output_control.py` | Sends GSAS-II printouts to a log file per sample |
 | `controls/` | Original calibration and integration files: image controls (`.imctrl`), mask (`.immask`), instrument parameters (`x.instprm`), LaB6 image. Do not edit |
@@ -50,7 +52,8 @@ matrix (prefixed `[GSAS]`), and the summary tables at the end. Set `QUIET_GSAS =
 ## Refinement strategy
 
 1. **First temperature only:** background (5 terms) and sample displacement, then add the unit
-   cell and uniaxial microstrain along c. Zero shift stays at 0 (see `TODO.md` 1b).
+   cell, uniaxial microstrain along c and the O displacement parameter (U_iso, see
+   `UISO_SETTINGS`). Zero shift stays at 0 (see `TODO.md` 1b).
 2. **Copy to all temperatures:** background, instrument parameters, limits, phase settings and
    displacement are copied from the first pattern.
 3. **Sequential, pass 1:** refine the Dij strain terms (which give a and c) at each temperature,
@@ -98,6 +101,17 @@ every quantity, shuffling labels only within the same start temperature. Each ro
 `output/stats_tests.csv` gives group means and medians, the difference with a bootstrap 95%
 interval, a permutation p-value, a Mann-Whitney p-value and a Holm-adjusted p-value (corrected
 for running all the tests). Per-sample values are in `output/stats_per_sample.csv`.
+
+### Ring spottiness (`python -m scripts.spottiness`)
+
+Grains larger than ~0.1 µm don't broaden the peaks, but they make the rings on the detector
+spotty. For each frozen scan and the (100), (002) and (101) rings, the ring is split into 5°
+azimuth bins and the background-subtracted intensity of each bin is measured from the raw
+counts. `CV_excess` is the bin-to-bin variation beyond what counting noise explains: larger means
+fewer, bigger grains (texture also contributes, so compare samples rather than reading it as an
+absolute grain count). `N_eff = 1/CV_excess²` is the effective number of grains per bin. Per scan
+values go to `output/spottiness.csv`; one value per larva (median over scans) to
+`output/spottiness_per_sample.csv`, which `stats` and `report` include when present.
 
 ### Fit-quality columns
 
