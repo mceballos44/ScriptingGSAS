@@ -84,7 +84,7 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 
 ## Process / project setup
 
-- [ ] Fix GitHub access (Claude GitHub App on `mceballos44/ScriptingGSAS`) and push the local commits
+- [x] Fix GitHub access (Claude GitHub App on `mceballos44/ScriptingGSAS`) and push the local commits
 - [x] `CLAUDE.md` with working rules for Claude sessions
 - [x] `README.md` documenting what each part does
 - [ ] Move parameters out of code into one config file: sample list (`main.py`), paths and
