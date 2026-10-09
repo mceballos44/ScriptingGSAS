@@ -31,9 +31,12 @@ import scripts.refinement as rf
 # Will always use this cif file for the phase
 ice_cif = DATA_DIR / "ice.cif"
 
-def full_analysis(sample_name):
+def full_analysis(sample_name, refine_displacement=True):
     """
     Run the complete GSASII analysis for a single sample
+
+    refine_displacement: passed to additional_seq_refine. Run once with
+    False to compare CTE with DisplaceX fixed vs refined (TODO 1c)
     """
     
     gpx = setup(sample_name=sample_name)
@@ -55,7 +58,10 @@ def full_analysis(sample_name):
 
     rf.initial_refine(gpx=gpx)
     rf.first_seq_refine(gpx=gpx)
-    rf.additional_seq_refine(gpx=gpx)
+    rf.additional_seq_refine(
+        gpx=gpx,
+        refine_displacement=refine_displacement
+    )
     df = extract_data(gpx=gpx,sample_name=sample_name)
     
     return df

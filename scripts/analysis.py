@@ -221,6 +221,8 @@ if __name__ == "__main__":
     plot_rwp(group='AFP')
     plot_parameter('A','sigmaA', group='AFP')
     plot_parameter('C','sigmaC',group='AFP')
+    # Sample displacement vs T: a steady drift means the larva moved (TODO 1c)
+    plot_parameter('DisplaceX','sigma_DisplaceX',group='AFP')
 
     a_cte = calculate_cte('A',group='AFP')
     c_cte = calculate_cte('C',group='AFP')

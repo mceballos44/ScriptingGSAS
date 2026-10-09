@@ -145,19 +145,27 @@ def first_seq_refine(gpx):
     gpx.save()
     return gpx
 
-def additional_seq_refine(gpx):
+def additional_seq_refine(gpx, refine_displacement=True):
     """
     Here we perform additional sequential refinement steps with more refined terms
-    Goal here is to get better measures of lattice params and eventually size 
+    Goal here is to get better measures of lattice params and eventually size
+
+    refine_displacement: refine DisplaceX at each temperature (default).
+        Set False to keep it at the value from initial_refine, to check
+        whether letting it float changes the lattice parameters / CTE
+        (TODO 1c). The larva can move, so True is the normal setting.
     """
+    first_step = {
+        'Background': {
+            'refine': True
+        }
+    }
+    if refine_displacement:
+        first_step['Sample Parameters'] = ['DisplaceX']
+
     refs = [
         {
-            'set':{
-                'Sample Parameters': ['DisplaceX'],
-                'Background': {
-                    'refine': True
-                }
-            }
+            'set': first_step
         },
         {
             'set':{

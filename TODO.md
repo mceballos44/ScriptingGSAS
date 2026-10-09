@@ -26,8 +26,10 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 - [ ] **1c** DisplaceX refined per temperature together with Dij in `additional_seq_refine`.
       Keep for now: a larva on a capillary tip can move between temperatures, so a per-temperature
       offset is physically reasonable. Check that it doesn't fake expansion:
-  - [ ] Plot refined DisplaceX vs T per sample (add DisplaceX to `extract_data`)
-  - [ ] Compare CTE with DisplaceX fixed vs refined; if they differ, they are correlated
+  - [~] Plot refined DisplaceX vs T per sample: `DisplaceX`/`sigma_DisplaceX` now in the results,
+        plotted by `analysis.py`. To do: look at the plots on real data
+  - [~] Compare CTE with DisplaceX fixed vs refined; if they differ, they are correlated.
+        `full_analysis(sample, refine_displacement=False)` keeps it fixed. To do: run both and compare
 - [ ] **1d** `calculate_cte`: use a weighted fit (`np.polyfit(..., w=1/sigma, cov=True)`) and
       optionally leave out `Fit_OK == False` points
 - [ ] **1e** Glass background: subtraction is commented out. The glass capillary sits in the beam,

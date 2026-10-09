@@ -93,6 +93,8 @@ def extract_data(gpx,sample_name):
         D33, sigma_D33 = _value_esd(seq, x, f'0:{x}:D33')
         Mustrain_a, sigma_Mustrain_a = _value_esd(seq, x, f'0:{x}:Mustrain;a')
         Mustrain_i, sigma_Mustrain_i = _value_esd(seq, x, f'0:{x}:Mustrain;i')
+        # Sample displacement (mm): tracks the larva moving between temperatures
+        DisplaceX, sigma_DisplaceX = _value_esd(seq, x, f':{x}:DisplaceX')
         row = {
             'Sample': sample_name,
             'Seq_index': x,
@@ -111,6 +113,8 @@ def extract_data(gpx,sample_name):
             'sigma_Mustrain_a': sigma_Mustrain_a,
             'Mustrain_i': Mustrain_i,
             'sigma_Mustrain_i': sigma_Mustrain_i,
+            'DisplaceX': DisplaceX,
+            'sigma_DisplaceX': sigma_DisplaceX,
         }
         row.update(_fit_metrics(seq_results, ref_data[1]))
         rows.append(row)
