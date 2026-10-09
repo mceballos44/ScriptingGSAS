@@ -84,9 +84,11 @@ means extra scatter or a curved trend (the CTE uncertainty already accounts for 
 | Column | Meaning |
 |---|---|
 | `Rwp` | Weighted profile R-factor (%): overall misfit between calculated and observed pattern. Compare within a sample, not as an absolute |
-| `Rexp`, `GOF` | Best Rwp the counting noise allows, and Rwp/Rexp (ideally near 1) |
-| `Durbin_Watson` | About 2 when the misfit is random; below 1 means a systematic misfit (peak shape or background) |
-| `Converged`, `Max_shift_esd`, `SVD_singular` | Whether the fit settled, and whether any parameters were undetermined |
+| `Rp` | Unweighted profile R-factor (%) |
+| `GOF` | Goodness of fit. Assumes intensities in counts; ours are much smaller, so it sits far below 1. Compare between temperatures only |
+| `Durbin_Watson` | About 2 when the misfit is random; lower means a systematic misfit (peak shape or background). Finely sampled patterns sit well below 2, so it is flagged only when unusually low for the sample |
+| `Converged`, `Last_shift_esd`, `SVD_singular` | Whether the fit settled (final-cycle shift/esd below 0.1), and whether any parameters were undetermined |
+| `Total_shift_esd` | How far parameters moved from their starting values, in esds (informational, not a convergence test) |
 | `Rwp_increase` | Rwp went up compared with the previous temperature |
 | `A_trend_z`, `C_trend_z` | How far a or c sits from a straight-line fit vs temperature |
 | `DisplaceX` | Sample displacement; a steady drift with temperature means the larva moved |

@@ -14,7 +14,25 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 - [x] Flag temperatures where Rwp went up from the previous step (`flag_fit_quality`)
 - [x] Per-sample summary sheet in the Excel output (`quality_summary`)
 - [x] `plot_rwp` in `analysis.py` (circles = Rwp up, x = failed check)
-- [ ] Run on real data and pick a sensible `rwp_tol` (default 0 flags every rise)
+- [x] Run on real data and pick a sensible `rwp_tol`: 0.05. First run (2026-10-09): rises of 0-3%
+      are noise, real problems were +80-200%. Thresholds now in `FIT_CHECKS` (`config.py`)
+- [x] Fix: "large shift/esd" flagged 244/246 rows. GSAS-II's `Max shft/sig` is the total change
+      from the starting values, not the last cycle. Now `Last_shift_esd` from `Rvals['lastShifts']`
+- [x] Fix: Rp, Rexp and Durbin-Watson were only stored for the first histogram (stale values from
+      `initial_refine`). Rp and DW are now computed per temperature from the pattern arrays
+      (checked against GSAS-II's Rwp); Rexp dropped. DW flagged relative to the sample, since
+      every pattern sits around 0.4-1.1
+- [ ] GOF ~0.04 and Rexp = 100%: integrated intensities are far below counts (the unfrozen cutoff is
+      0.8), so GSAS-II's 1/y weights don't match the real noise. Rwp and esds (scaled by GOF) are
+      fine; GOF/Rexp are not interpretable in absolute terms. Find where the scaling comes from
+      (image controls / detector gain) if absolute GOF matters
+- [ ] Bad fits in the first run (Rwp jumps from ~8% to 17-25%), check these patterns and images:
+      AFP16 247, AFP17 246, AFP5 250, AFP6 243, AFP8 250, WT23 246, WT3 241/244/245.
+      AFP5 250 and AFP8 250 are the freezing scan (probably partly liquid). The others are
+      mid-run and recover at the next temperature; in them Mustrain and DisplaceX jump
+      (DisplaceX up to 114 vs typical ±5), so the fit wandered or the pattern changed (spotty ice?)
+- [ ] Decide whether the freezing scan (T_freeze) belongs in the CTE fit
+- [ ] AFP16 (4 frozen scans, one bad) and WT20 (2) have too few points for a CTE
 
 ## 1. Refinement problems that change results
 
@@ -30,6 +48,11 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
         plotted by `analysis.py`. To do: look at the plots on real data
   - [~] Compare CTE with DisplaceX fixed vs refined; if they differ, they are correlated.
         `full_analysis(sample, refine_displacement=False)` keeps it fixed. To do: run both and compare
+  - First run (2026-10-09): no systematic drift (slopes -0.4 to +0.2 µm/K), and DisplaceX
+    scatters less than its own esd (~1.5 vs ~3 µm), so it isn't measuring real motion. Its
+    scatter is strongly anti-correlated with the scatter of a and c around their trends
+    (r = -0.6 to -0.97 in 18 of 20 samples): refining it per temperature adds noise to a and c.
+    Expect the fixed-DisplaceX run to give smoother a(T), c(T) and tighter CTEs
 - [x] **1d** `calculate_cte`: weighted fit (`np.polyfit(..., w=1/sigma, cov=True)`), optional
       `exclude_flagged=True` to leave out `Fit_OK == False` points, skips unrefined temperatures.
       Also reports `Red_chi2_fit` (scatter around the line vs error bars)
@@ -64,6 +87,8 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
   - Small groups (about 11 each, split further by start temperature): use rank-based or
     permutation tests (Mann-Whitney U, permutation test on the difference in medians) rather
     than t-tests
+  - First run preview (medians, n = 5-6 per cell): AFP 260 K start 250.5 K, AFP 280 K 252 K,
+    WT 260 K 251.5 K, WT 280 K 254 K. 280 K starts freeze ~1.5-2.5 K warmer; not tested yet
 - [ ] Then compare AFP vs WT, keeping temperature range as a covariate if it matters
 
 ## 2. Code that will crash or misbehave

@@ -32,35 +32,83 @@ def _value_esd(seq, x, var):
         esd = np.nan
     return val, esd
 
+def _profile_stats(hist_data, rwp_gsas):
+    """
+    Rp and Durbin-Watson computed from the observed/calculated pattern
+    arrays of one histogram. GSAS-II only stores these residuals for the
+    last single-pattern refinement, not for every sequential step, so
+    they are recomputed here.
+
+    The Rwp from the same arrays is compared with GSAS-II's own Rwp; if
+    they disagree the arrays are stale and NaN is returned instead.
+    """
+    nan = {'Rp': np.nan, 'Durbin_Watson': np.nan}
+    try:
+        x, yo, w, yc = (np.ma.asarray(a) for a in hist_data['data'][1][:4])
+    except (KeyError, IndexError, TypeError):
+        return nan
+    lo, hi = hist_data['Limits'][1]
+    use = (~np.ma.getmaskarray(x)) & (x >= lo) & (x <= hi) & (w > 0)
+    yo, w, yc = (np.asarray(a)[use] for a in (yo, w, yc))
+    if len(yo) < 3 or not np.any(yc):
+        return nan
+    diff = yo - yc
+    rwp = 100 * np.sqrt(np.sum(w * diff**2) / np.sum(w * yo**2))
+    if not np.isfinite(rwp_gsas) or abs(rwp - rwp_gsas) > 0.05 * rwp_gsas:
+        return nan
+    wdiff = np.sqrt(w) * diff
+    return {
+        'Rp': 100 * np.sum(np.abs(diff)) / np.sum(yo),
+        'Durbin_Watson': np.sum(np.diff(wdiff)**2) / np.sum(wdiff**2),
+    }
+
+def _last_shift_esd(seq_results):
+    """
+    Largest |shift/esd| in the final least-squares cycle. GSAS-II's own
+    'Max shft/sig' is the total change from the starting values, which is
+    large whenever a parameter moved a lot, even in a converged fit.
+    """
+    shifts = seq_results.get('Rvals', {}).get('lastShifts')
+    if not shifts:
+        return np.nan
+    sig = dict(zip(seq_results.get('varyList', []), seq_results.get('sig', [])))
+    ratios = [
+        abs(shift / sig[name]) for name, shift in shifts.items()
+        if sig.get(name) not in (None, 0) and np.isfinite(sig[name])
+    ]
+    return max(ratios) if ratios else np.nan
+
 def _fit_metrics(seq_results, hist_data):
     """
-    Pull the goodness-of-fit numbers GSAS-II stores for one histogram.
+    Pull the goodness-of-fit numbers for one histogram.
 
     seq_results['Rvals'] is written by the least-squares engine
-    (GSASIIstrMain.RefineCore). hist_data['data'][0] is the histogram
-    'Residuals' dict written when the pattern is calculated
-    (GSASIIstrMath.getPowderProfile).
+    (GSASIIstrMain.RefineCore); Rp and Durbin-Watson are computed from
+    the pattern arrays (see _profile_stats).
+
+    Note: GOF assumes intensities are in counts. These integrated
+    intensities are much smaller than counts, so GOF comes out far below
+    1; compare it between temperatures, not with 1.
     """
     rvals = seq_results.get('Rvals', {})
-    residuals = hist_data['data'][0]
+    rwp = rvals.get('Rwp', np.nan)
     gof = rvals.get('GOF', np.nan)
-    return {
-        'Rwp': rvals.get('Rwp', np.nan),                # weighted profile R (%)
-        'Rp': residuals.get('R', np.nan),               # unweighted profile R (%)
-        'Rexp': residuals.get('wRmin', np.nan),         # best Rwp possible from counting stats (%)
-        'Rwp_bkg': residuals.get('wRb', np.nan),        # background-subtracted Rwp (%)
-        'GOF': gof,                                     # Rwp/Rexp, ideally ~1
+    metrics = {
+        'Rwp': rwp,                                     # weighted profile R (%)
+        'GOF': gof,                                     # relative use only, see above
         'Red_chi2': gof**2,
-        'Durbin_Watson': residuals.get('Durbin-Watson', np.nan),  # ~2 = random residuals
         'Nobs': rvals.get('Nobs', np.nan),
         'Nvars': rvals.get('Nvars', np.nan),
         'Converged': rvals.get('converged', None),
         'DelChi2': rvals.get('DelChi2', np.nan),        # last relative change in chi2
-        'Max_shift_esd': rvals.get('Max shft/sig', np.nan),
+        'Last_shift_esd': _last_shift_esd(seq_results), # final-cycle shift/esd
+        'Total_shift_esd': rvals.get('Max shft/sig', np.nan),  # change from start
         'SVD_singular': rvals.get('SVD0', 0),           # >0 means correlated/undetermined params
         'Aborted': rvals.get('Aborted', False),
         'Refine_msg': rvals.get('msg', '').strip(),
     }
+    metrics.update(_profile_stats(hist_data, rwp))      # Rp, Durbin_Watson
+    return metrics
 
 def extract_data(gpx,sample_name):
     """
@@ -196,7 +244,6 @@ def flag_fit_quality(
     rwp_tol=0.0,
     n_mad=3.0,
     max_shift_esd=0.1,
-    min_durbin_watson=1.0,
     lattice_sigma=3.0
 ):
     """
@@ -211,15 +258,18 @@ def flag_fit_quality(
         0 flags any increase.
     n_mad: how many robust deviations above the sample median counts
         as an Rwp or GOF outlier
-    max_shift_esd: largest acceptable final shift/esd (converged fits are < 0.1)
-    min_durbin_watson: below this, residuals are serially correlated
-        (systematic misfit of peak shapes/background)
+    max_shift_esd: largest acceptable final-cycle shift/esd (converged fits are < 0.1)
+    Durbin-Watson is flagged when unusually low for the sample (n_mad robust
+    deviations below its median): residuals more correlated than usual,
+    i.e. a systematic misfit of peak shapes/background. It is not compared
+    with a fixed value because finely sampled patterns sit well below 2.
     lattice_sigma: robust z-score for A or C to count as off the linear trend
 
     New columns:
     Rwp_change: Rwp minus Rwp of the previous temperature in the sequence
     Rwp_increase: True where Rwp went up from the previous temperature
     Rwp_outlier, GOF_outlier: much worse than typical for that sample
+    DW_outlier: Durbin-Watson much lower than typical for that sample
     A_trend_z, C_trend_z: distance from a linear A(T) / C(T) fit
     Fit_flags: text list of every check that failed
     Fit_OK: True when no check failed
@@ -231,7 +281,7 @@ def flag_fit_quality(
 
     for col in ['Rwp_change', 'A_trend_z', 'C_trend_z']:
         df[col] = np.nan
-    for col in ['Rwp_increase', 'Rwp_outlier', 'GOF_outlier']:
+    for col in ['Rwp_increase', 'Rwp_outlier', 'GOF_outlier', 'DW_outlier']:
         df[col] = False
 
     for sample, sample_data in df.groupby('Sample', sort=False):
@@ -245,6 +295,9 @@ def flag_fit_quality(
         )
         df.loc[idx, 'Rwp_outlier'] = _robust_high(refined['Rwp'], n_mad)
         df.loc[idx, 'GOF_outlier'] = _robust_high(refined['GOF'], n_mad)
+        if 'Durbin_Watson' in refined:
+            # Low DW is bad: flip the sign and reuse the high-outlier test
+            df.loc[idx, 'DW_outlier'] = _robust_high(-refined['Durbin_Watson'], n_mad)
         df.loc[idx, 'A_trend_z'] = _lattice_outlier(refined, 'A', lattice_sigma)
         df.loc[idx, 'C_trend_z'] = _lattice_outlier(refined, 'C', lattice_sigma)
 
@@ -262,11 +315,11 @@ def flag_fit_quality(
             flags.append('not converged')
         if row.get('Aborted') == True:
             flags.append('aborted')
-        if row.get('Max_shift_esd', 0) > max_shift_esd:
+        if row.get('Last_shift_esd', 0) > max_shift_esd:
             flags.append('large shift/esd')
         if row.get('SVD_singular', 0) > 0:
             flags.append('singular params')
-        if row.get('Durbin_Watson', 2) < min_durbin_watson:
+        if row['DW_outlier']:
             flags.append('correlated residuals')
         if abs(row['A_trend_z']) > lattice_sigma:
             flags.append('A off trend')

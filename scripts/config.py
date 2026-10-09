@@ -29,6 +29,21 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 QUIET_GSAS = True
 LOG_DIR = OUTPUT_DIR / "logs"
 GSAS_LOG_KEYWORDS = ['error', 'warn', 'fail', 'singular', 'abort']
+
+# ---------------------------------
+# Fit quality checks (results.flag_fit_quality)
+# ---------------------------------
+FIT_CHECKS = {
+    # Relative Rwp rise from the previous temperature that gets flagged.
+    # First run: rises of 0-3% are noise, real problems were +80% or more
+    'rwp_tol': 0.05,
+    # Robust deviations from the sample median that count as an outlier
+    'n_mad': 3.0,
+    # Largest acceptable final-cycle shift/esd
+    'max_shift_esd': 0.1,
+    # Robust z-score for a or c to count as off the straight-line trend
+    'lattice_sigma': 3.0,
+}
 # ---------------------------------
 # Settings, change the quoted pieces
 # ---------------------------------

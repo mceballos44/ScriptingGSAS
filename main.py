@@ -27,7 +27,7 @@ from scripts.config import setup,BASE_DIR,DATA_DIR,PROJECT_DIR,OUTPUT_DIR,CONTRO
 from scripts.config import BACKGROUND_FILE,CONTROLS_FILE,MASK_FILE,INSTRUMENT_FILE
 from scripts.results import extract_data, combine_data, save_data
 from scripts.results import flag_fit_quality, quality_summary, temperature_info
-from scripts.config import QUIET_GSAS, LOG_DIR, GSAS_LOG_KEYWORDS
+from scripts.config import QUIET_GSAS, LOG_DIR, GSAS_LOG_KEYWORDS, FIT_CHECKS
 from scripts.output_control import gsas_output_to
 import scripts.image_processing as ip
 import scripts.refinement as rf
@@ -156,7 +156,7 @@ if not all_results:
 
 full_df = combine_data(all_results)
 # Mark temperatures where Rwp went up or other fit checks failed
-full_df = flag_fit_quality(full_df)
+full_df = flag_fit_quality(full_df, **FIT_CHECKS)
 
 sample_info = pd.DataFrame(all_info)
 save_data(full_df, sample_info=sample_info)

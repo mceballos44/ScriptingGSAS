@@ -64,6 +64,7 @@ raise, so check the "Failed samples" list at the end of a run.
 With `config.QUIET_GSAS` on, everything printed during `full_analysis` (GSAS-II and our own
 prints) goes to `output/logs/<sample>.log`; only lines matching `GSAS_LOG_KEYWORDS` reach the
 terminal. Put user-facing progress messages in `main.py`'s loop, outside the redirect.
+Fit-check thresholds live in `config.FIT_CHECKS` and are passed to `flag_fit_quality`.
 
 Lattice parameters in the sequential fits come from Dij on top of the fixed cell (Cell flag is off);
 `seq.get_cell_and_esd` combines them. Variable names are `0:<hist>:D11`, `0:<hist>:Mustrain;a`, etc.
@@ -76,6 +77,12 @@ Lattice parameters in the sequential fits come from Dij on top of the fixed cell
   refining.
 - Uniaxial Mustrain: `'refine': True` refines both terms; a string refines only that one and clears
   the other; a list raises an error.
+- `Rvals['Max shft/sig']` is the total shift from the starting values, not the last cycle; use
+  `Rvals['lastShifts']` with `sig` for convergence.
+- Histogram `Residuals` (R, wRmin, Durbin-Watson) are only kept from the last single-pattern
+  refinement, not per sequential step; compute them from the `data[1]` arrays instead.
+- Integrated intensities here are far below counts, so GOF/Rexp are not meaningful in absolute
+  terms (GOF ~0.04). Esds are scaled by GOF, so they are still usable.
 - Sequential refinement stops at the first failed histogram; later ones have no entry in
   `seq.data` (`extract_data` handles this).
 - GSAS-II source is the reference for what scriptable calls do (`GSASIIscriptable.py`,
