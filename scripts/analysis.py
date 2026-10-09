@@ -4,7 +4,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from scipy.stats import linregress
 # Import directories
 from scripts.config import setup,BASE_DIR,DATA_DIR,PROJECT_DIR,OUTPUT_DIR,CONTROLS_DIR
 #from scripts.config import BACKGROUND_FILE,CONTROLS_FILE,MASK_FILE,INSTRUMENT_FILE
@@ -89,7 +88,7 @@ def plot_parameter(parameter,sigma_parameter,group):
     plt.show()
     return
 
-def calculate_cte(parameter,group):
+def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False):
     """
     Calculate linear coefficient of thermal expansion (CTE)
     for each sample.
@@ -111,11 +110,25 @@ def calculate_cte(parameter,group):
             "WT"
         If None, all samples are used.
 
+    sigma_parameter : str or None
+        Column with the uncertainty of parameter, used to weight the fit
+        (points with larger error bars count less). Defaults to
+        "sigma" + parameter, e.g. "sigmaA". If any point is missing an
+        uncertainty, that sample falls back to an unweighted fit.
+
+    exclude_flagged : bool
+        If True, leave out temperatures with Fit_OK == False
+        (see results.flag_fit_quality).
+
     Returns
     -------
     pandas DataFrame
         Table containing sample, slope, average lattice
-        parameter, and CTE.
+        parameter, CTE and its uncertainty, number of points used,
+        whether the fit was weighted, and Red_chi2_fit: scatter of the
+        points around the line relative to their error bars (about 1 if
+        the line and the error bars agree; much larger means extra
+        scatter or a curved trend, and Sigma_cte already includes it).
     """
     df = pd.read_csv(RESULTS_FILE)
 
@@ -143,18 +156,50 @@ def calculate_cte(parameter,group):
     )
 
     
+    if sigma_parameter is None:
+        sigma_parameter = f"sigma{parameter}"
+
     results = []
     
     # Go through samples one at a time
     for sample in df['Sample'].unique():
         sample_data = df[df['Sample'] == sample].copy()
-        # Calculate slope dL/dT using linear regression
-        fit = linregress(sample_data['T'], sample_data[parameter])
-        slope = fit.slope
-        sigma_slope = fit.stderr
+        n_total = len(sample_data)
+        # Temperatures that were never refined have no value
+        sample_data = sample_data.dropna(subset=['T', parameter])
+        if exclude_flagged and 'Fit_OK' in sample_data:
+            sample_data = sample_data[sample_data['Fit_OK'] == True]
+        n_used = len(sample_data)
+
+        T = sample_data['T'].to_numpy(dtype=float)
+        y = sample_data[parameter].to_numpy(dtype=float)
+
+        # Weight each point by 1/sigma if every point has a usable sigma
+        weights = None
+        if sigma_parameter in sample_data:
+            sigma = sample_data[sigma_parameter].to_numpy(dtype=float)
+            if np.all(np.isfinite(sigma)) and np.all(sigma > 0):
+                weights = 1.0 / sigma
+
+        slope = sigma_slope = red_chi2 = np.nan
+        if n_used >= 4:
+            # Calculate slope dL/dT using a (weighted) straight-line fit.
+            # cov=True scales the uncertainty by the actual scatter
+            # around the line, so underestimated GSAS esds don't make
+            # the CTE look more precise than it is
+            (slope, intercept), cov = np.polyfit(T, y, 1, w=weights, cov=True)
+            sigma_slope = np.sqrt(cov[0, 0])
+            resid = y - (slope * T + intercept)
+            w2 = 1.0 if weights is None else weights**2
+            red_chi2 = np.sum(w2 * resid**2) / (n_used - 2)
+        elif n_used >= 2:
+            slope = np.polyfit(T, y, 1, w=weights)[0]
+            print(f"{sample}: only {n_used} points, no uncertainty on CTE")
+        else:
+            print(f"{sample}: fewer than 2 usable points, skipped")
         
         # Calculate average lattice parameter
-        avg_param = sample_data[parameter].mean()
+        avg_param = np.mean(y) if n_used else np.nan
         # Calculate CTE
         cte = slope / avg_param
         sigma_cte = sigma_slope / avg_param
@@ -164,7 +209,11 @@ def calculate_cte(parameter,group):
             'Slope': slope,
             'Average': avg_param,
             'CTE': cte,
-            'Sigma_cte': sigma_cte
+            'Sigma_cte': sigma_cte,
+            'N_points': n_used,
+            'N_excluded': n_total - n_used,
+            'Weighted': weights is not None,
+            'Red_chi2_fit': red_chi2,
         })
     
     results_df = pd.DataFrame(results)

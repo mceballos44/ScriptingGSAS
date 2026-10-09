@@ -30,8 +30,9 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
         plotted by `analysis.py`. To do: look at the plots on real data
   - [~] Compare CTE with DisplaceX fixed vs refined; if they differ, they are correlated.
         `full_analysis(sample, refine_displacement=False)` keeps it fixed. To do: run both and compare
-- [ ] **1d** `calculate_cte`: use a weighted fit (`np.polyfit(..., w=1/sigma, cov=True)`) and
-      optionally leave out `Fit_OK == False` points
+- [x] **1d** `calculate_cte`: weighted fit (`np.polyfit(..., w=1/sigma, cov=True)`), optional
+      `exclude_flagged=True` to leave out `Fit_OK == False` points, skips unrefined temperatures.
+      Also reports `Red_chi2_fit` (scatter around the line vs error bars)
 - [ ] **1e** Glass background: subtraction is commented out. The glass capillary sits in the beam,
       so either restore image subtraction or check that 5 background terms are enough
       (low Durbin-Watson = not enough)
