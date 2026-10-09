@@ -32,6 +32,7 @@ git clone (`pip install ~/G2[gui,useful]`; binaries via `install_gsas_binaries.p
 python main.py            # full pipeline for every sample in main.py's `samples` list
 python -m scripts.analysis   # plots + CTE from output/seq_results.csv
 python -m scripts.stats      # per-sample values + group tests (stats_*.csv)
+python -m scripts.report     # stats + output/report.html (d3 from cdnjs)
 ```
 
 Run from the repo root: modules import each other as `scripts.<name>`. There are no tests or

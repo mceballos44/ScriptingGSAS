@@ -22,6 +22,7 @@ Mauricio Ceballos, Joester Group, Northwestern University.
 python main.py               # runs every sample listed in main.py
 python -m scripts.analysis   # plots Rwp, a and c vs temperature, prints CTE
 python -m scripts.stats      # group comparisons (needs main.py outputs)
+python -m scripts.report     # stats + HTML report in output/report.html
 ```
 
 GSAS-II's printouts for each sample go to `output/logs/<sample>.log`. The terminal shows one
@@ -40,6 +41,7 @@ matrix (prefixed `[GSAS]`), and the summary tables at the end. Set `QUIET_GSAS =
 | `scripts/results.py` | Pulls lattice parameters, strain and fit statistics out of the sequential results, flags questionable fits, writes Excel/CSV |
 | `scripts/analysis.py` | Plots and CTE calculation from the saved results |
 | `scripts/stats.py` | Per-sample values and statistical tests between groups |
+| `scripts/report.py` | Self-contained HTML report: findings, figures and tables (needs internet for fonts and the d3 chart library) |
 | `scripts/output_control.py` | Sends GSAS-II printouts to a log file per sample |
 | `controls/` | Original calibration and integration files: image controls (`.imctrl`), mask (`.immask`), instrument parameters (`x.instprm`), LaB6 image. Do not edit |
 | `data/` | Raw images (not in git) and `ice.cif`. Do not edit |

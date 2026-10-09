@@ -74,6 +74,28 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
       off too slowly with angle. Test refining one U_iso for O (H constrained or fixed) in
       `initial_refine`, or fixing it at a literature value, and see whether Rwp improves. Affects
       intensities/Rwp, not a and c
+- [ ] Peak width / crystallite size (goal: compare FWHM or size between AFP and WT).
+      Refining Size makes the fit unstable because the data can't separate it from other broadening:
+  - Size broadening goes as 1/cos(theta), which changes by only ~1% over 6.5-18.5 deg 2theta, so it
+    is indistinguishable from constant-width terms (instrument W/X, and the geometric broadening
+    of a ~mm larva at 150 mm). Microstrain (tan theta, varies 3x over the range) is separable
+  - Instrument FWHM (x.instprm) is ~0.18 deg at 12 deg 2theta. Scherrer broadening is ~0.03 deg
+    for 100 nm crystallites and ~0.003 deg for 1 um, so only crystallites below ~100-200 nm
+    would show up at all. Ice grains in frozen tissue are typically microns (rings are spotty)
+  - Options, in order of usefulness:
+    1. Ring spottiness from the 2D images (intensity variation along each ring vs azimuth):
+       measures the number of diffracting grains, i.e. grain size in the micron range where
+       AFP's recrystallization inhibition would act. Needs a new image-analysis step
+    2. Empirical peak width: FWHM of a few strong reflections per scan (from the refined
+       profile or single-peak fits), compared between groups as excess over the LaB6 width.
+       Larva size/position adds geometric width, so compare with care
+    3. Keep Size fixed (large) and use Mustrain as the width parameter, as now
+- [ ] Ag Kalpha1/Kalpha2 doublet: `x.instprm` uses one averaged wavelength (0.56083). The doublet
+      splitting grows from 0.05 to 0.15 deg 2theta across the range, which is folded into U,V,W
+      from the LaB6 fit. Fine for positions; for width analysis, refit the LaB6 instrument file
+      with Lam1/Lam2 (in GSAS-II, saved as a new file outside `controls/`)
+- [ ] Preferred orientation: test spherical harmonics (order 2-4) on the first scan; spotty
+      tissue ice may carry texture that the near-full-ring integration doesn't average out
 - [x] Refining O and H positions: not worthwhile with this data (d >= 1.75 Å, ~a dozen
       reflections, H nearly invisible to X-rays, intensities affected by spotty ice). Positions
       don't change a and c. Keep the CIF positions fixed
@@ -107,7 +129,7 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
   - AFP vs WT freezing: AFP 1.5 K colder (CI 0.3-2.7 K, p = 0.06, Holm 0.38): suggestive only
   - AFP vs WT CTE, a, c, c/a at 248 K: no difference. CTE a +1.1 (CI -1.3 to 3.4) e-6/K,
     CTE c -0.1 (CI -4.0 to 3.5) e-6/K, c/a -4e-5 (CI -1.5e-4 to 6e-5)
-- [ ] Present: plots of the per-sample values by group and start temperature (HTML report)
+- [x] Present: HTML report (`python -m scripts.report` → `output/report.html`; runs the stats first)
 
 ## 2. Code that will crash or misbehave
 
