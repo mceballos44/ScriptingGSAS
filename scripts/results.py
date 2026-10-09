@@ -121,6 +121,43 @@ def extract_data(gpx,sample_name):
     df = pd.DataFrame(rows)
     return df
 
+def temperature_info(sample_name, all_temps, frozen_temps):
+    """
+    Summarize the temperature run of one sample and where it froze.
+
+    Samples are cooled in steps, so the freezing temperature is bracketed
+    by the warmest scan with ice (T_freeze) and the scan just before it
+    with no ice (T_last_unfrozen).
+
+    Inputs:
+    all_temps: temperatures of every integrated image
+    frozen_temps: temperatures left after remove_unfrozen
+    """
+    all_temps = sorted(all_temps)
+    frozen_temps = sorted(frozen_temps)
+    unfrozen_temps = [t for t in all_temps if t not in frozen_temps]
+
+    t_freeze = max(frozen_temps) if frozen_temps else np.nan
+    above = [t for t in unfrozen_temps if t > t_freeze]
+    below = [t for t in unfrozen_temps if t < t_freeze]
+    steps = np.diff(all_temps)
+
+    return {
+        'Sample': sample_name,
+        'Group': ''.join(c for c in sample_name if c.isalpha()),
+        'T_start': max(all_temps) if all_temps else np.nan,  # cooling run: starts warm
+        'T_end': min(all_temps) if all_temps else np.nan,
+        'T_step': float(np.median(steps)) if len(steps) else np.nan,
+        'N_images': len(all_temps),
+        'N_frozen': len(frozen_temps),
+        'T_freeze': t_freeze,                               # warmest scan with ice
+        'T_last_unfrozen': min(above) if above else np.nan, # scan just before freezing
+        # Scans rejected as unfrozen below the freezing point: should be 0,
+        # otherwise the intensity cutoff dropped frozen frames (check them)
+        'N_unfrozen_below_freeze': len(below),
+        'T_unfrozen_below_freeze': ', '.join(f'{t:g}' for t in below),
+    }
+
 # ---------------------------------
 # Fit quality checks
 # ---------------------------------
@@ -274,7 +311,7 @@ def combine_data(sample_list):
     # Save dataframe as readable csv/excel file
     return full_df
 
-def save_data(df):
+def save_data(df, sample_info=None):
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
     excel_file = OUTPUT_DIR / f'seq_results_{timestamp}.xlsx'
     csv_file = OUTPUT_DIR / 'seq_results.csv'
@@ -285,6 +322,8 @@ def save_data(df):
             quality_summary(df).to_excel(
                 writer, sheet_name='Fit_quality', index=False
             )
+        if sample_info is not None:
+            sample_info.to_excel(writer, sheet_name='Samples', index=False)
     df.to_csv(
         csv_file,
         index=False
@@ -292,6 +331,10 @@ def save_data(df):
     print(f"Saved results to:")
     print(excel_file)
     print(csv_file)
+    if sample_info is not None:
+        info_file = OUTPUT_DIR / 'sample_info.csv'
+        sample_info.to_csv(info_file, index=False)
+        print(info_file)
     return excel_file
 # import scripts.config as sp
 # import image_processing as ip

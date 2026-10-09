@@ -33,9 +33,10 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 - [x] **1d** `calculate_cte`: weighted fit (`np.polyfit(..., w=1/sigma, cov=True)`), optional
       `exclude_flagged=True` to leave out `Fit_OK == False` points, skips unrefined temperatures.
       Also reports `Red_chi2_fit` (scatter around the line vs error bars)
-- [ ] **1e** Glass background: subtraction is commented out. The glass capillary sits in the beam,
-      so either restore image subtraction or check that 5 background terms are enough
-      (low Durbin-Watson = not enough)
+- [ ] **1e** (later) Glass background: subtraction is commented out. The glass capillary sits in the
+      beam and adds most of the background. Subtracting the glass image before integration has
+      made GSAS-II refinements fail in the past, so for now the background function has to carry
+      it; check that 5 terms are enough (low Durbin-Watson = not enough)
 
 ## Calibration / sample geometry
 
@@ -44,16 +45,16 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
       constant; absolute a, c are not.
   - [ ] Compare a, c at one temperature with literature ice Ih (Röttger et al., 1994)
   - [ ] If possible, measure a standard in the same capillary-tip position for future runs
-- [ ] Polarization is 0.99 in `.imctrl` and `x.instprm`. If this is a lab Ag source without a
-      monochromator, it should be about 0.5 (affects intensities/Rwp, not positions)
+- [x] Polarization is 0.99 in `.imctrl` and `x.instprm`. Decision: keep it, per the lab source
+      technician (it affects intensities/Rwp, not peak positions)
 - [ ] Larvae can move or dehydrate during a run, and ice in tissue can be spotty (few large crystals).
       Watch for single-temperature Rwp jumps and check those images by eye
 
 ## Statistics
 
-- [ ] Record per sample: temperature range measured (min, max, step) and the freezing point
-      bracket (lowest temperature with no ice and highest temperature with ice, from
-      `remove_unfrozen`, which currently prints the dropped temperatures but doesn't save them)
+- [x] Record per sample: temperature range measured (start, end, step) and the freezing point
+      bracket (`temperature_info` → *Samples* sheet and `output/sample_info.csv`). Also counts
+      scans rejected as unfrozen below the freezing point, which should be 0
 - [ ] Statistical tests within each treatment group (AFP, WT): do samples run over different
       temperature ranges differ in freezing temperature (and CTE, a, c)?
   - Collection: each sample starts at 260 K or 280 K and is cooled in 1 K steps, scanned at each

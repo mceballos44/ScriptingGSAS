@@ -52,7 +52,25 @@ python -m scripts.analysis   # plots Rwp, a and c vs temperature, prints CTE
 - `projects/<sample>.gpx`: the GSAS-II project for each sample (open in the GSAS-II GUI to inspect fits).
 - `output/seq_results_<date>.xlsx`: sheet *Results* has one row per sample and temperature; sheet
   *Fit_quality* has one row per sample with the flagged temperatures.
+  Sheet *Samples* has one row per sample: temperature range and freezing temperature.
 - `output/seq_results.csv`: same as *Results*, read by `analysis.py`.
+- `output/sample_info.csv`: same as *Samples*.
+
+### Samples columns
+
+| Column | Meaning |
+|---|---|
+| `T_start`, `T_end`, `T_step` | Temperature run (cooling, so it starts at `T_start`) |
+| `T_freeze` | Warmest scan with ice: the freezing temperature, to within one step |
+| `T_last_unfrozen` | The scan just before freezing (no ice yet) |
+| `N_unfrozen_below_freeze` | Scans below the freezing point rejected as unfrozen; should be 0, otherwise check those images |
+
+### CTE output (`analysis.calculate_cte`)
+
+Weighted straight-line fit of a or c vs temperature (points with larger error bars count less).
+`Red_chi2_fit` is about 1 when the points scatter as much as their error bars say; much larger
+means extra scatter or a curved trend (the CTE uncertainty already accounts for it).
+`exclude_flagged=True` leaves out temperatures that failed a fit check.
 
 ### Fit-quality columns
 
@@ -64,4 +82,5 @@ python -m scripts.analysis   # plots Rwp, a and c vs temperature, prints CTE
 | `Converged`, `Max_shift_esd`, `SVD_singular` | Whether the fit settled, and whether any parameters were undetermined |
 | `Rwp_increase` | Rwp went up compared with the previous temperature |
 | `A_trend_z`, `C_trend_z` | How far a or c sits from a straight-line fit vs temperature |
+| `DisplaceX` | Sample displacement; a steady drift with temperature means the larva moved |
 | `Fit_flags`, `Fit_OK` | Every check that failed, and whether the row passed all of them |

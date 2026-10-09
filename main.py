@@ -25,7 +25,7 @@ import pandas as pd
 from scripts.config import setup,BASE_DIR,DATA_DIR,PROJECT_DIR,OUTPUT_DIR,CONTROLS_DIR
 from scripts.config import BACKGROUND_FILE,CONTROLS_FILE,MASK_FILE,INSTRUMENT_FILE
 from scripts.results import extract_data, combine_data, save_data
-from scripts.results import flag_fit_quality, quality_summary
+from scripts.results import flag_fit_quality, quality_summary, temperature_info
 import scripts.image_processing as ip
 import scripts.refinement as rf
 # Will always use this cif file for the phase
@@ -51,8 +51,21 @@ def full_analysis(sample_name, refine_displacement=True):
             f'Unknown sample type: {sample_name}'
         )
     ip.integrate_images(gpx=gpx,samples=sample_folder)
+    all_temps = [
+        hist.SampleParameters['Temperature']
+        for hist in gpx.histograms("PWDR ")
+    ]
     ip.remove_unfrozen(gpx=gpx)
     ip.remove_orphan_images(gpx=gpx)
+    frozen_temps = [
+        hist.SampleParameters['Temperature']
+        for hist in gpx.histograms("PWDR ")
+    ]
+    info = temperature_info(sample_name, all_temps, frozen_temps)
+    print(
+        f"{sample_name}: {info['T_start']:g} -> {info['T_end']:g} K, "
+        f"froze at {info['T_freeze']:g} K"
+    )
 
     ip.assign_phase_one(gpx=gpx,phase_name='ice')
 
@@ -64,7 +77,7 @@ def full_analysis(sample_name, refine_displacement=True):
     )
     df = extract_data(gpx=gpx,sample_name=sample_name)
     
-    return df
+    return df, info
 # -----------------------------
 # Main workflow
 # -----------------------------
@@ -95,6 +108,7 @@ samples = [
 ]
 
 all_results = []
+all_info = []
 failed = {}
 
 for sample_name in samples:
@@ -105,7 +119,7 @@ for sample_name in samples:
 
     # One failed sample shouldn't lose the whole run: report it and move on
     try:
-        df = full_analysis(sample_name)
+        df, info = full_analysis(sample_name)
     except Exception as err:
         traceback.print_exc()
         print(f"\n*** {sample_name} failed: {err}\n")
@@ -113,6 +127,7 @@ for sample_name in samples:
         continue
 
     all_results.append(df)
+    all_info.append(info)
 
 if not all_results:
     raise RuntimeError("Every sample failed, nothing to save")
@@ -121,11 +136,14 @@ full_df = combine_data(all_results)
 # Mark temperatures where Rwp went up or other fit checks failed
 full_df = flag_fit_quality(full_df)
 
-save_data(full_df)
+sample_info = pd.DataFrame(all_info)
+save_data(full_df, sample_info=sample_info)
 
 print(full_df)
 print()
 print(quality_summary(full_df).to_string(index=False))
+print()
+print(sample_info.to_string(index=False))
 
 if failed:
     print("\nFailed samples:")

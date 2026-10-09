@@ -40,7 +40,8 @@ refinement can be checked by putting an empty `G2script.py` stub on `PYTHONPATH`
 
 Inputs: `data/<AFP|WT>/<sample>/*.cbf`, file stems ending in `_<temperature>` (integer K).
 `data/` is git-ignored except `data/ice.cif`. Outputs: `projects/<sample>.gpx` and `output/`
-(timestamped `seq_results_*.xlsx` with Results + Fit_quality sheets, and `seq_results.csv`),
+(timestamped `seq_results_*.xlsx` with Results, Fit_quality and Samples sheets, plus
+`seq_results.csv` and `sample_info.csv`),
 both git-ignored; `config.py` creates the folders on import.
 
 ## Pipeline (main.py `full_analysis`, one project per sample)
@@ -55,7 +56,11 @@ both git-ignored; `config.py` creates the folders on import.
    HAP values and DisplaceX to all, turn on Dij (HStrain), run sequential with `seqCopy`
    (each histogram starts from the previous result).
 6. `additional_seq_refine` – sequential again with DisplaceX, background and Mustrain added.
-7. `results.extract_data` → `flag_fit_quality` → `save_data`.
+7. `results.extract_data` → `flag_fit_quality` → `save_data`. `temperature_info` (called between
+   steps 2 and 3) records the temperature run and freezing temperature per sample.
+
+`full_analysis` returns `(results_df, sample_info_dict)`; `main.py` skips and reports samples that
+raise, so check the "Failed samples" list at the end of a run.
 
 Lattice parameters in the sequential fits come from Dij on top of the fixed cell (Cell flag is off);
 `seq.get_cell_and_esd` combines them. Variable names are `0:<hist>:D11`, `0:<hist>:Mustrain;a`, etc.
@@ -79,5 +84,10 @@ Lattice parameters in the sequential fits come from Dij on top of the fixed cell
   temperatures, and the glass is in the beam.
 - LaB6 calibration was collected separately, so absolute a/c carry a distance-related scale error;
   CTE (relative slope) is unaffected if the geometry stayed constant.
+- Data collection: each sample starts at 260 K or 280 K and is cooled in 1 K steps; every sample
+  freezes (around 250 K). Invalid samples are already excluded from the sample list.
+- Polarization stays at 0.99 (lab source technician's instruction); don't change it.
+- The glass capillary is most of the background. Subtracting the glass image before integration
+  made GSAS-II refinements fail, so it's left to the background function for now.
 - Zero is fixed at 0. Over 6.5–18.5° 2θ it is nearly indistinguishable from DisplaceX, so DisplaceX
   is the only peak-offset parameter (refined per temperature). Don't refine both.
