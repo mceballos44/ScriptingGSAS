@@ -30,7 +30,7 @@ git clone (`pip install ~/G2[gui,useful]`; binaries via `install_gsas_binaries.p
 
 ```
 python main.py            # full pipeline for every sample in main.py's `samples` list
-python scripts/analysis.py   # plots + CTE from output/seq_results.csv (runs at import)
+python -m scripts.analysis   # plots + CTE from output/seq_results.csv
 ```
 
 Run from the repo root: modules import each other as `scripts.<name>`. There are no tests or
@@ -39,9 +39,9 @@ refinement can be checked by putting an empty `G2script.py` stub on `PYTHONPATH`
 `gpx`/`seqref()` objects.
 
 Inputs: `data/<AFP|WT>/<sample>/*.cbf`, file stems ending in `_<temperature>` (integer K).
-`data/` is git-ignored except `data/ice.cif`. Outputs: `projects/<sample>` (.gpx) and `output/`
+`data/` is git-ignored except `data/ice.cif`. Outputs: `projects/<sample>.gpx` and `output/`
 (timestamped `seq_results_*.xlsx` with Results + Fit_quality sheets, and `seq_results.csv`),
-both git-ignored and not auto-created.
+both git-ignored; `config.py` creates the folders on import.
 
 ## Pipeline (main.py `full_analysis`, one project per sample)
 

@@ -15,13 +15,12 @@ Mauricio Ceballos, Joester Group, Northwestern University.
    Details are in `Instructions.ipynb`.
 3. Put the images in `data/AFP/<sample>/` or `data/WT/<sample>/`. File names must end in the
    temperature, e.g. `AFP3_250.cbf`.
-4. Create the `projects/` and `output/` folders (not created automatically yet).
 
 ## Running
 
 ```
 python main.py               # runs every sample listed in main.py
-python scripts/analysis.py   # plots Rwp, a and c vs temperature, prints CTE
+python -m scripts.analysis   # plots Rwp, a and c vs temperature, prints CTE
 ```
 
 ## What each part does
@@ -50,7 +49,7 @@ python scripts/analysis.py   # plots Rwp, a and c vs temperature, prints CTE
 
 ## Outputs
 
-- `projects/<sample>`: the GSAS-II project for each sample (open in the GSAS-II GUI to inspect fits).
+- `projects/<sample>.gpx`: the GSAS-II project for each sample (open in the GSAS-II GUI to inspect fits).
 - `output/seq_results_<date>.xlsx`: sheet *Results* has one row per sample and temperature; sheet
   *Fit_quality* has one row per sample with the flagged temperatures.
 - `output/seq_results.csv`: same as *Results*, read by `analysis.py`.

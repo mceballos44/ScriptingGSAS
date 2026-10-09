@@ -81,12 +81,13 @@ def integrate_images(
         # )
 
         # Integrate image
-        pwdr = image.Integrate()[0]
+        pwdr_list = image.Integrate()
 
-        if not pwdr:
+        if not pwdr_list:
             raise RuntimeError(
                 f"Integration failed for: {image_file.name}"
             )
+        pwdr = pwdr_list[0]
 
         # Set temperature
         pwdr.SampleParameters['Temperature'] = temperature

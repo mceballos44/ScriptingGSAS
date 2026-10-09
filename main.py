@@ -17,6 +17,7 @@ import scripts.config
 # Project paths
 # -----------------------------
 import os
+import traceback
 import G2script as G2sc
 from pathlib import Path
 import pandas as pd
@@ -88,6 +89,7 @@ samples = [
 ]
 
 all_results = []
+failed = {}
 
 for sample_name in samples:
 
@@ -95,10 +97,19 @@ for sample_name in samples:
     print(f"Running {sample_name}")
     print()
 
-    df = full_analysis(sample_name)
+    # One failed sample shouldn't lose the whole run: report it and move on
+    try:
+        df = full_analysis(sample_name)
+    except Exception as err:
+        traceback.print_exc()
+        print(f"\n*** {sample_name} failed: {err}\n")
+        failed[sample_name] = str(err)
+        continue
 
     all_results.append(df)
 
+if not all_results:
+    raise RuntimeError("Every sample failed, nothing to save")
 
 full_df = combine_data(all_results)
 # Mark temperatures where Rwp went up or other fit checks failed
@@ -109,3 +120,8 @@ save_data(full_df)
 print(full_df)
 print()
 print(quality_summary(full_df).to_string(index=False))
+
+if failed:
+    print("\nFailed samples:")
+    for sample_name, err in failed.items():
+        print(f"  {sample_name}: {err}")

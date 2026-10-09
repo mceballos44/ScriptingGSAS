@@ -15,6 +15,10 @@ BACKGROUND_FILE = DATA_DIR / "glass.cbf"
 CONTROLS_FILE = CONTROLS_DIR / ".imctrl"
 MASK_FILE = CONTROLS_DIR / ".immask"
 INSTRUMENT_FILE = CONTROLS_DIR / "x.instprm"
+
+# Output folders are git-ignored, so create them if this is a fresh checkout
+PROJECT_DIR.mkdir(exist_ok=True)
+OUTPUT_DIR.mkdir(exist_ok=True)
 # ---------------------------------
 # Settings, change the quoted pieces
 # ---------------------------------
@@ -26,7 +30,7 @@ background_file = DATA_DIR / 'glass.cbf'
 # Setting up base project file
 # ---------------------------------
 def setup(sample_name):
-    project_file = PROJECT_DIR / sample_name
+    project_file = PROJECT_DIR / f"{sample_name}.gpx"
     if project_file.exists():
             project_file.unlink()  # Remove existing project file to avoid conflicts
 

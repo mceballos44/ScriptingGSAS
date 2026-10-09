@@ -12,7 +12,7 @@ import scripts.image_processing as ip
 # Will always use this cif file for the phase
 ice_cif = DATA_DIR / "ice.cif"
 
-RESULTS_FILE = OUTPUT_DIR / "seq_results.xlsx"
+RESULTS_FILE = OUTPUT_DIR / "seq_results.csv"
 # This workbook will contain the functions for rearranging long table data for auto plotting
 
 # First thing I would like to do is get a summary graph of the a and c lattice parameters for all the samples.
@@ -32,7 +32,7 @@ def get_parameter_table(df,parameter):
 
 def plot_parameter(parameter,sigma_parameter,group):
     # Import written excel file
-    df = pd.read_excel(RESULTS_FILE)
+    df = pd.read_csv(RESULTS_FILE)
     
     plt.figure()
     
@@ -117,7 +117,7 @@ def calculate_cte(parameter,group):
         Table containing sample, slope, average lattice
         parameter, and CTE.
     """
-    df = pd.read_excel(RESULTS_FILE)
+    df = pd.read_csv(RESULTS_FILE)
 
     if group is not None:
         df = df[
@@ -177,7 +177,7 @@ def plot_rwp(group):
     marking any other failed fit check (Fit_OK False) with an x.
     Reads the csv from save_data, which has the flag columns.
     """
-    df = pd.read_csv(OUTPUT_DIR / "seq_results.csv")
+    df = pd.read_csv(RESULTS_FILE)
     if group is not None:
         df = df[df['Sample'].str.startswith(group)].copy()
 
@@ -217,12 +217,13 @@ def plot_rwp(group):
 def stats_summary(parameter,group):
     
     return
-plot_rwp(group='AFP')
-plot_parameter('A','sigmaA', group='AFP')
-plot_parameter('C','sigmaC',group='AFP')
+if __name__ == "__main__":
+    plot_rwp(group='AFP')
+    plot_parameter('A','sigmaA', group='AFP')
+    plot_parameter('C','sigmaC',group='AFP')
 
-a_cte = calculate_cte('A',group='AFP')
-c_cte = calculate_cte('C',group='AFP')
+    a_cte = calculate_cte('A',group='AFP')
+    c_cte = calculate_cte('C',group='AFP')
 
-print(a_cte)
-print(c_cte)
+    print(a_cte)
+    print(c_cte)

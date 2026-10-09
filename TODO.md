@@ -64,13 +64,14 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 
 ## 2. Code that will crash or misbehave
 
-- [ ] `analysis.py` reads `seq_results.xlsx`, which `save_data` never writes (point it at the csv)
-- [ ] `analysis.py` runs plots at import; wrap in `if __name__ == "__main__":`
-- [ ] `config.py`: create `projects/` and `output/` if missing (`mkdir(exist_ok=True)`)
-- [ ] `config.py`: give project files a `.gpx` extension
-- [ ] `main.py`: `try/except` around each sample so one failure doesn't lose the whole run
-- [ ] `integrate_images`: check the list returned by `Integrate()` before taking `[0]`
-- [ ] `requirements.txt`: add `pandas` and `openpyxl`; re-save as UTF-8
+- [x] `analysis.py` reads `seq_results.xlsx`, which `save_data` never writes (point it at the csv)
+- [x] `analysis.py` runs plots at import; wrap in `if __name__ == "__main__":`
+- [x] `config.py`: create `projects/` and `output/` if missing (`mkdir(exist_ok=True)`)
+- [x] `config.py`: give project files a `.gpx` extension
+- [x] `main.py`: `try/except` around each sample so one failure doesn't lose the whole run
+- [x] `integrate_images`: check the list returned by `Integrate()` before taking `[0]`
+- [x] `requirements.txt`: add `pandas` and `openpyxl`; re-save as UTF-8 (added unpinned: re-run
+      `pip freeze` on the local machine to pin the installed versions)
 
 ## 3. Things that could quietly be wrong
 
