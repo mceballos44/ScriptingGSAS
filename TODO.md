@@ -90,6 +90,11 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
        (settings in `SPOTTINESS_SETTINGS`); stats and report pick it up automatically.
        To do: run on the real images, check the numbers look sensible (smooth vs spotty
        images by eye), then read the AFP vs WT test
+       **Fails on first run (2026-10-09):** `MakeMaskMap` raises "operands could not be broadcast
+       together with shapes (301453,) (237169,)". The detector is 487 x 619 px; GSAS-II builds the
+       polygon mask from `controls['size']` in (x, y) order while the image array is (row, col).
+       Fix to try: build the polygon/point mask from pixel coordinates in mm (as
+       `Make2ThetaAzimuthMap` does) instead of calling `MakeMaskMap`; test on one image
     2. Empirical peak width: FWHM of a few strong reflections per scan (from the refined
        profile or single-peak fits), compared between groups as excess over the LaB6 width.
        Larva size/position adds geometric width, so compare with care

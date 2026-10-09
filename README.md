@@ -48,6 +48,7 @@ matrix (prefixed `[GSAS]`), and the summary tables at the end. Set `QUIET_GSAS =
 | `controls/` | Original calibration and integration files: image controls (`.imctrl`), mask (`.immask`), instrument parameters (`x.instprm`), LaB6 image. Do not edit |
 | `data/` | Raw images (not in git) and `ice.cif`. Do not edit |
 | `TODO.md` | Known issues, decisions and their status |
+| `CHANGELOG.md` | Everything changed since the original workflow, with reasons and results |
 
 ## Refinement strategy
 
