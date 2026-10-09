@@ -18,6 +18,7 @@ import scripts.config
 # -----------------------------
 import os
 import traceback
+import contextlib
 import G2script as G2sc
 from pathlib import Path
 import pandas as pd
@@ -26,6 +27,8 @@ from scripts.config import setup,BASE_DIR,DATA_DIR,PROJECT_DIR,OUTPUT_DIR,CONTRO
 from scripts.config import BACKGROUND_FILE,CONTROLS_FILE,MASK_FILE,INSTRUMENT_FILE
 from scripts.results import extract_data, combine_data, save_data
 from scripts.results import flag_fit_quality, quality_summary, temperature_info
+from scripts.config import QUIET_GSAS, LOG_DIR, GSAS_LOG_KEYWORDS
+from scripts.output_control import gsas_output_to
 import scripts.image_processing as ip
 import scripts.refinement as rf
 # Will always use this cif file for the phase
@@ -62,10 +65,6 @@ def full_analysis(sample_name, refine_displacement=True):
         for hist in gpx.histograms("PWDR ")
     ]
     info = temperature_info(sample_name, all_temps, frozen_temps)
-    print(
-        f"{sample_name}: {info['T_start']:g} -> {info['T_end']:g} K, "
-        f"froze at {info['T_freeze']:g} K"
-    )
 
     ip.assign_phase_one(gpx=gpx,phase_name='ice')
 
@@ -113,21 +112,44 @@ failed = {}
 
 for sample_name in samples:
 
-    print()
-    print(f"Running {sample_name}")
-    print()
+    print(f"Running {sample_name} ...")
+
+    # GSAS-II printouts go to a log file per sample (see config.QUIET_GSAS)
+    log_file = LOG_DIR / f"{sample_name}.log"
+    if QUIET_GSAS:
+        output = gsas_output_to(log_file, GSAS_LOG_KEYWORDS)
+    else:
+        output = contextlib.nullcontext()
 
     # One failed sample shouldn't lose the whole run: report it and move on
     try:
-        df, info = full_analysis(sample_name)
+        with output:
+            df, info = full_analysis(sample_name)
     except Exception as err:
         traceback.print_exc()
-        print(f"\n*** {sample_name} failed: {err}\n")
+        print(f"\n*** {sample_name} failed: {err}")
+        if QUIET_GSAS:
+            print(f"    GSAS-II output: {log_file}")
+        print()
         failed[sample_name] = str(err)
         continue
 
     all_results.append(df)
     all_info.append(info)
+
+    # One-line summary per sample
+    n_refined = int(df['Refined'].sum())
+    print(
+        f"  {info['T_start']:g} -> {info['T_end']:g} K, froze at {info['T_freeze']:g} K, "
+        f"{n_refined}/{len(df)} temperatures refined, "
+        f"Rwp {df.get('Rwp', pd.Series(dtype=float)).min():.2f}-"
+        f"{df.get('Rwp', pd.Series(dtype=float)).max():.2f}%"
+    )
+    if info['N_unfrozen_below_freeze']:
+        print(
+            f"  Check: frames below freezing rejected as unfrozen at "
+            f"{info['T_unfrozen_below_freeze']} K"
+        )
 
 if not all_results:
     raise RuntimeError("Every sample failed, nothing to save")
@@ -139,7 +161,7 @@ full_df = flag_fit_quality(full_df)
 sample_info = pd.DataFrame(all_info)
 save_data(full_df, sample_info=sample_info)
 
-print(full_df)
+# Full table is in output/seq_results.csv; print the per-sample summaries
 print()
 print(quality_summary(full_df).to_string(index=False))
 print()

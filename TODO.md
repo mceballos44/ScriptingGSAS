@@ -98,6 +98,8 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
       temperature range, which can be read from the image file names (record it in the results)
 - [ ] Enforce read-only `data/` and `controls/` with deny rules in `.claude/settings.json`
 - [ ] On the local machine: run `/fewer-permission-prompts` after a few sessions
+- [x] Quieter terminal: GSAS-II output goes to `output/logs/<sample>.log`, terminal shows a
+      summary line per sample and GSAS-II warnings/errors (`QUIET_GSAS` in `config.py`)
 - [ ] HTML report per run: Rwp and a/c vs T with flags, CTE table, worst fits
 - [ ] Once the pipeline is stable: package "run a new sample" as a skill (`skill-creator`)
 

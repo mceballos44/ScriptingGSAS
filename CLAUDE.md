@@ -61,6 +61,9 @@ both git-ignored; `config.py` creates the folders on import.
 
 `full_analysis` returns `(results_df, sample_info_dict)`; `main.py` skips and reports samples that
 raise, so check the "Failed samples" list at the end of a run.
+With `config.QUIET_GSAS` on, everything printed during `full_analysis` (GSAS-II and our own
+prints) goes to `output/logs/<sample>.log`; only lines matching `GSAS_LOG_KEYWORDS` reach the
+terminal. Put user-facing progress messages in `main.py`'s loop, outside the redirect.
 
 Lattice parameters in the sequential fits come from Dij on top of the fixed cell (Cell flag is off);
 `seq.get_cell_and_esd` combines them. Variable names are `0:<hist>:D11`, `0:<hist>:Mustrain;a`, etc.

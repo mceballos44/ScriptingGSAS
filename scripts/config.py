@@ -19,6 +19,16 @@ INSTRUMENT_FILE = CONTROLS_DIR / "x.instprm"
 # Output folders are git-ignored, so create them if this is a fresh checkout
 PROJECT_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
+
+# ---------------------------------
+# Terminal output
+# ---------------------------------
+# True: GSAS-II's printouts for each sample go to output/logs/<sample>.log
+# and the terminal only shows the pipeline summary plus GSAS-II lines
+# containing one of the keywords below. False: print everything.
+QUIET_GSAS = True
+LOG_DIR = OUTPUT_DIR / "logs"
+GSAS_LOG_KEYWORDS = ['error', 'warn', 'fail', 'singular', 'abort']
 # ---------------------------------
 # Settings, change the quoted pieces
 # ---------------------------------

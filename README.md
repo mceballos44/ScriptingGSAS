@@ -23,6 +23,11 @@ python main.py               # runs every sample listed in main.py
 python -m scripts.analysis   # plots Rwp, a and c vs temperature, prints CTE
 ```
 
+GSAS-II's printouts for each sample go to `output/logs/<sample>.log`. The terminal shows one
+summary line per sample, any GSAS-II line mentioning an error, warning, failure or singular
+matrix (prefixed `[GSAS]`), and the summary tables at the end. Set `QUIET_GSAS = False` in
+`scripts/config.py` to see everything in the terminal again.
+
 ## What each part does
 
 | File | Role |
@@ -33,6 +38,7 @@ python -m scripts.analysis   # plots Rwp, a and c vs temperature, prints CTE
 | `scripts/refinement.py` | Refinement strategy: single-pattern refinement of the first temperature, then sequential refinement of all temperatures |
 | `scripts/results.py` | Pulls lattice parameters, strain and fit statistics out of the sequential results, flags questionable fits, writes Excel/CSV |
 | `scripts/analysis.py` | Plots and CTE calculation from the saved results |
+| `scripts/output_control.py` | Sends GSAS-II printouts to a log file per sample |
 | `controls/` | Original calibration and integration files: image controls (`.imctrl`), mask (`.immask`), instrument parameters (`x.instprm`), LaB6 image. Do not edit |
 | `data/` | Raw images (not in git) and `ice.cif`. Do not edit |
 | `TODO.md` | Known issues, decisions and their status |
@@ -55,6 +61,7 @@ python -m scripts.analysis   # plots Rwp, a and c vs temperature, prints CTE
   Sheet *Samples* has one row per sample: temperature range and freezing temperature.
 - `output/seq_results.csv`: same as *Results*, read by `analysis.py`.
 - `output/sample_info.csv`: same as *Samples*.
+- `output/logs/<sample>.log`: everything GSAS-II printed for that sample.
 
 ### Samples columns
 
