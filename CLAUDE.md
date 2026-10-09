@@ -31,6 +31,7 @@ git clone (`pip install ~/G2[gui,useful]`; binaries via `install_gsas_binaries.p
 ```
 python main.py            # full pipeline for every sample in main.py's `samples` list
 python -m scripts.analysis   # plots + CTE from output/seq_results.csv
+python -m scripts.stats      # per-sample values + group tests (stats_*.csv)
 ```
 
 Run from the repo root: modules import each other as `scripts.<name>`. There are no tests or
@@ -105,4 +106,9 @@ Lattice parameters in the sequential fits come from Dij on top of the fixed cell
   is the only peak-offset parameter. Don't refine both.
 - DisplaceX is refined only in `initial_refine` and then held fixed (`REFINE_DISPLACEMENT_PER_T =
   False`): per-temperature DisplaceX trades off with a and c and doubled their scatter.
-- AFP16 and WT20 are excluded (too few frozen scans). The freezing scan is left out of CTE fits.
+- AFP16 and WT20 are excluded (too few frozen scans). The freezing scan is left out of CTE fits,
+  and so are individual bad scans in `CTE_SETTINGS['excluded_scans']` (the sample stays in).
+- Statistics use one value per larva, never per-temperature points. Start temperature (260/280 K)
+  is confounded with collection batch (samples 2-8 vs 15-24).
+- Atomic positions and U_iso come from `ice.cif` and are not refined (positions: not determinable
+  from this data; U_iso = 0 in the CIF is a TODO).

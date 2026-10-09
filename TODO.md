@@ -26,7 +26,9 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
       0.8), so GSAS-II's 1/y weights don't match the real noise. Rwp and esds (scaled by GOF) are
       fine; GOF/Rexp are not interpretable in absolute terms. Find where the scaling comes from
       (image controls / detector gain) if absolute GOF matters
-- [ ] Bad fits in the first run (Rwp jumps from ~8% to 17-25%), check these patterns and images.
+- [x] Bad fits in the first run (Rwp jumps from ~8% to 17-25%), check these patterns and images.
+      Decision: leave these scans out of the analysis (not the samples); listed in
+      `CTE_SETTINGS['excluded_scans']`.
       They are identical with DisplaceX fixed, so the patterns themselves are off, not the fit.
       AFP5 250 checked: noisy image, incomplete rings (freezing artifact). Once checked, list bad
       scans in `CTE_SETTINGS['excluded_scans']` (`config.py`):
@@ -37,6 +39,8 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 - [x] Freezing scan (T_freeze) left out of the CTE fit (`CTE_SETTINGS['exclude_freeze_scan']`)
 - [x] AFP16 (4 frozen scans, one bad) and WT20 (2) excluded from the sample list in `main.py`
 - [ ] Last-cycle shift/esd is still ~0.3-1 esd (median 0.7) when GSAS-II stops (chi2 change < 0.1%).
+      16:27 run: the parameter is Mustrain (216 of 240 rows) or Scale (23), not a/c, so lattice
+      results are unaffected; matters only if microstrain is going to be interpreted.
       Flag threshold set to 1.0 for now. `Last_shift_param` records which parameter moved most;
       if it's always the same one, try a tighter convergence (`min dM/M` 1e-4) or more cycles
 
@@ -64,6 +68,16 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
       made GSAS-II refinements fail in the past, so for now the background function has to carry
       it; check that 5 terms are enough (low Durbin-Watson = not enough)
 
+## Structure model
+
+- [ ] `ice.cif` has U_iso = 0 for every atom (no thermal motion), so calculated intensities fall
+      off too slowly with angle. Test refining one U_iso for O (H constrained or fixed) in
+      `initial_refine`, or fixing it at a literature value, and see whether Rwp improves. Affects
+      intensities/Rwp, not a and c
+- [x] Refining O and H positions: not worthwhile with this data (d >= 1.75 Å, ~a dozen
+      reflections, H nearly invisible to X-rays, intensities affected by spotty ice). Positions
+      don't change a and c. Keep the CIF positions fixed
+
 ## Calibration / sample geometry
 
 - [ ] Sample-to-detector distance: larva at the capillary tip is not where the LaB6 was. This scales
@@ -81,18 +95,19 @@ Status: `[ ]` to do, `[~]` in progress / partly done, `[x]` done
 - [x] Record per sample: temperature range measured (start, end, step) and the freezing point
       bracket (`temperature_info` → *Samples* sheet and `output/sample_info.csv`). Also counts
       scans rejected as unfrozen below the freezing point, which should be 0
-- [ ] Statistical tests within each treatment group (AFP, WT): do samples run over different
-      temperature ranges differ in freezing temperature (and CTE, a, c)?
+- [x] Statistical tests (`python -m scripts.stats`, 2026-10-09 16:27 run). One value per larva;
+      permutation tests on the difference in means (AFP vs WT shuffled within start temperature),
+      bootstrap 95% CI, Mann-Whitney cross-check, Holm correction over the 9 tests.
   - Collection: each sample starts at 260 K or 280 K and is cooled in 1 K steps, scanned at each
     step. So this is a freezing (supercooling) temperature, known to within 1 K
-  - Ice forms in every sample (average about 250 K for both start temperatures), so no run starts
-    below its freezing point; invalid samples are already excluded from this set
-  - Small groups (about 11 each, split further by start temperature): use rank-based or
-    permutation tests (Mann-Whitney U, permutation test on the difference in medians) rather
-    than t-tests
-  - First run preview (medians, n = 5-6 per cell): AFP 260 K start 250.5 K, AFP 280 K 252 K,
-    WT 260 K 251.5 K, WT 280 K 254 K. 280 K starts freeze ~1.5-2.5 K warmer; not tested yet
-- [ ] Then compare AFP vs WT, keeping temperature range as a covariate if it matters
+  - Start temperature: 280 K starts froze 2.4 K warmer (95% CI 1.0-3.7 K, p = 0.005,
+    Holm 0.04; AFP +2.2 K, WT +2.6 K separately, p ~0.05 each)
+  - Caveat: start temperature is confounded with collection batch (samples 2-8 started at 260 K,
+    15-24 at 280 K), so a batch/cohort difference would look the same
+  - AFP vs WT freezing: AFP 1.5 K colder (CI 0.3-2.7 K, p = 0.06, Holm 0.38): suggestive only
+  - AFP vs WT CTE, a, c, c/a at 248 K: no difference. CTE a +1.1 (CI -1.3 to 3.4) e-6/K,
+    CTE c -0.1 (CI -4.0 to 3.5) e-6/K, c/a -4e-5 (CI -1.5e-4 to 6e-5)
+- [ ] Present: plots of the per-sample values by group and start temperature (HTML report)
 
 ## 2. Code that will crash or misbehave
 

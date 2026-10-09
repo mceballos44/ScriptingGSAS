@@ -21,6 +21,7 @@ Mauricio Ceballos, Joester Group, Northwestern University.
 ```
 python main.py               # runs every sample listed in main.py
 python -m scripts.analysis   # plots Rwp, a and c vs temperature, prints CTE
+python -m scripts.stats      # group comparisons (needs main.py outputs)
 ```
 
 GSAS-II's printouts for each sample go to `output/logs/<sample>.log`. The terminal shows one
@@ -38,6 +39,7 @@ matrix (prefixed `[GSAS]`), and the summary tables at the end. Set `QUIET_GSAS =
 | `scripts/refinement.py` | Refinement strategy: single-pattern refinement of the first temperature, then sequential refinement of all temperatures |
 | `scripts/results.py` | Pulls lattice parameters, strain and fit statistics out of the sequential results, flags questionable fits, writes Excel/CSV |
 | `scripts/analysis.py` | Plots and CTE calculation from the saved results |
+| `scripts/stats.py` | Per-sample values and statistical tests between groups |
 | `scripts/output_control.py` | Sends GSAS-II printouts to a log file per sample |
 | `controls/` | Original calibration and integration files: image controls (`.imctrl`), mask (`.immask`), instrument parameters (`x.instprm`), LaB6 image. Do not edit |
 | `data/` | Raw images (not in git) and `ice.cif`. Do not edit |
@@ -81,6 +83,19 @@ means extra scatter or a curved trend (the CTE uncertainty already accounts for 
 Options are set in `CTE_SETTINGS` in `scripts/config.py`: the freezing scan is left out by default,
 `excluded_scans` lists individual scans to drop after checking their images, and
 `exclude_flagged=True` leaves out every temperature that failed a fit check.
+
+### Statistics (`python -m scripts.stats`)
+
+One value per larva (temperatures of one larva are not independent): CTE of a and c, and a, c
+and c/a at a reference temperature (`STATS_SETTINGS['t_ref']`, 248 K) from each sample's
+straight-line fit, plus freezing temperature. c/a cancels errors that scale a and c together
+(sample-to-detector distance), so it is the most robust structural number.
+
+Tests: freezing temperature 280 vs 260 K start (each group, and both together); AFP vs WT for
+every quantity, shuffling labels only within the same start temperature. Each row of
+`output/stats_tests.csv` gives group means and medians, the difference with a bootstrap 95%
+interval, a permutation p-value, a Mann-Whitney p-value and a Holm-adjusted p-value (corrected
+for running all the tests). Per-sample values are in `output/stats_per_sample.csv`.
 
 ### Fit-quality columns
 

@@ -91,7 +91,7 @@ def plot_parameter(parameter,sigma_parameter,group):
     return
 
 def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False,
-                  exclude_freeze_scan=False, excluded_scans=None):
+                  exclude_freeze_scan=False, excluded_scans=None, t_ref=None):
     """
     Calculate linear coefficient of thermal expansion (CTE)
     for each sample.
@@ -130,6 +130,11 @@ def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False,
     excluded_scans : dict or None
         Scans to leave out, {sample: [temperature, ...]}, e.g. ones whose
         images were checked and found bad.
+
+    t_ref : float or None
+        If given, also report the fitted parameter value at this
+        temperature (At_Tref, Sigma_at_Tref), so samples measured over
+        different ranges can be compared at the same temperature.
 
     Returns
     -------
@@ -202,6 +207,7 @@ def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False,
                 weights = 1.0 / sigma
 
         slope = sigma_slope = red_chi2 = np.nan
+        at_ref = sigma_at_ref = np.nan
         if n_used >= 4:
             # Calculate slope dL/dT using a (weighted) straight-line fit.
             # cov=True scales the uncertainty by the actual scatter
@@ -212,6 +218,11 @@ def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False,
             resid = y - (slope * T + intercept)
             w2 = 1.0 if weights is None else weights**2
             red_chi2 = np.sum(w2 * resid**2) / (n_used - 2)
+            if t_ref is not None:
+                at_ref = slope * t_ref + intercept
+                sigma_at_ref = np.sqrt(
+                    cov[0, 0] * t_ref**2 + 2 * cov[0, 1] * t_ref + cov[1, 1]
+                )
         elif n_used >= 2:
             slope = np.polyfit(T, y, 1, w=weights)[0]
             print(f"{sample}: only {n_used} points, no uncertainty on CTE")
@@ -234,6 +245,10 @@ def calculate_cte(parameter, group, sigma_parameter=None, exclude_flagged=False,
             'N_excluded': n_total - n_used,
             'Weighted': weights is not None,
             'Red_chi2_fit': red_chi2,
+            'T_min': T.min() if n_used else np.nan,
+            'T_max': T.max() if n_used else np.nan,
+            'At_Tref': at_ref,
+            'Sigma_at_Tref': sigma_at_ref,
         })
     
     results_df = pd.DataFrame(results)

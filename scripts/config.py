@@ -48,11 +48,29 @@ CTE_SETTINGS = {
     'exclude_freeze_scan': True,
     # Leave out temperatures that failed any fit check (Fit_OK == False)
     'exclude_flagged': False,
-    # Individual scans to leave out after looking at them: {sample: [T, ...]}
-    # Candidates from the 2026-10-09 runs (Rwp 17-25%, same with DisplaceX
-    # fixed or refined, so the pattern itself is off): AFP6 243, AFP17 246,
-    # WT23 246, WT3 241/244/245. Add them here once checked
-    'excluded_scans': {},
+    # Individual scans left out of the analysis (the sample stays in):
+    # {sample: [T, ...]}. These had Rwp 17-25% in the 2026-10-09 runs, the
+    # same with DisplaceX fixed or refined, so the pattern itself is off
+    'excluded_scans': {
+        'AFP6': [243],
+        'AFP17': [246],
+        'WT23': [246],
+        'WT3': [241, 244, 245],
+    },
+}
+
+# ---------------------------------
+# Statistics (scripts/stats.py)
+# ---------------------------------
+STATS_SETTINGS = {
+    # Temperature (K) at which a, c and c/a are compared between groups.
+    # 248 K is inside the measured frozen range of every sample except
+    # WT21 (250-255 K, extrapolated 2 K)
+    't_ref': 248.0,
+    # Random permutations / bootstrap resamples
+    'n_resamples': 20000,
+    # Seed so the p-values and intervals are the same on every run
+    'seed': 0,
 }
 
 # ---------------------------------
